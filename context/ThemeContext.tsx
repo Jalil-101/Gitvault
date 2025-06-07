@@ -1,3 +1,4 @@
+// context/ThemeContext.tsx
 import { Colors } from "@/constants/Colors";
 import * as React from "react";
 import { useColorScheme as useDeviceColorScheme } from "react-native";
@@ -13,7 +14,7 @@ interface ThemeContextType {
 
 export const ThemeContext = React.createContext<ThemeContextType>({
   theme: "light",
-  isDarkTheme: true,
+  isDarkTheme: false,
   toggleTheme: () => {},
   colors: Colors.light,
 });
