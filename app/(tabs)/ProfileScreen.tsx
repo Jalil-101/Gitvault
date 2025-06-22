@@ -1,131 +1,80 @@
-// screens/ProfileScreen.tsx
-import React, { useEffect, useRef } from "react";
+// app/(tabs)/profile.tsx
+import React from "react";
 import {
+  SafeAreaView,
   ScrollView,
-  RefreshControl,
-  Animated,
   StatusBar,
+  RefreshControl,
+  Alert,
+  StyleSheet,
   View,
-  Dimensions,
+  ColorValue,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@/context/ThemeContext";
-import { Link, useRouter } from "expo-router";
-import { AnimatedHeader } from "@/components/profile/AnimatedHeader";
+import { useModernTheme } from "@/context/ThemeContext";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileBio } from "@/components/profile/ProfileBio";
-import { ProfileActions } from "@/components/profile/ProfileActions";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import { QuickActions } from "@/components/profile/QuickActions";
+import { ActivityFeed } from "@/components/profile/ActivityFeed";
+import { useProfileData } from "@/hooks/useProfileData";
 import { ContributionGraph } from "@/components/profile/ContributionGraph";
-import { RepositoriesSection } from "@/components/profile/RepositoriesSection";
-import { AnimatedBackground } from "@/components/profile/AnimatedBackground";
-import { useProfileAnimations } from "@/hooks/useProfileAnimations";
-import { mockProfile, mockRepositories } from "@/data/mockProfileData";
+import { LinearGradient } from "expo-linear-gradient";
 
+export default function ProfileScreen() {
+  const { colors, theme, gradients } = useModernTheme();
+  const { profileData, isRefreshing, handleRefresh } = useProfileData();
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const HEADER_HEIGHT = 100;
-
-const ProfileScreen: React.FC = () => {
-  const { theme, colors } = useTheme();
-  const {
-    scrollY,
-    fadeAnim,
-    slideAnim,
-    scaleAnim,
-    sparkleAnim,
-    startAnimations,
-    headerOpacity,
-    avatarScale,
-    backgroundTransform,
-  } = useProfileAnimations(HEADER_HEIGHT, SCREEN_HEIGHT);
-
-  const refreshing = false;
-
-  useEffect(() => {
-    startAnimations();
-  }, []);
-
-  const onRefresh = () => {
-    // Implement refresh logic
+  const handlePress = (action: string) => {
+    Alert.alert("Action", `${action} pressed`);
   };
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "k";
-    }
-    return num.toString();
-  };
-
-  const getLanguageColor = (language: string): string => {
-    const colors: Record<string, string> = {
-      TypeScript: "#3178c6",
-      JavaScript: "#f1e05a",
-      Python: "#3572A5",
-      Java: "#b07219",
-      "C++": "#f34b7d",
-      Go: "#00ADD8",
-    };
-    return colors[language] || "#8b949e";
-  };
- const router = useRouter();
   return (
-    
-    <SafeAreaView className="flex-1 bg-github-light-canvas-subtle dark:bg-github-dark-canvas-default">
+    <SafeAreaView
+      className="flex-1"
+      style={{
+        backgroundColor: colors.background.primary,
+      }}
+    >
+      <LinearGradient
+        colors={
+          gradients.background as [ColorValue, ColorValue, ...ColorValue[]]
+        } // Cast to the required type
+        style={StyleSheet.absoluteFillObject}
+      />
+
       <StatusBar
         barStyle={theme === "dark" ? "light-content" : "dark-content"}
-        backgroundColor={
-          theme === "dark" ? colors.canvas.default : colors.canvas.subtle
-        }
+        backgroundColor={colors.background.primary}
       />
 
-      <AnimatedHeader
-        username={mockProfile.username}
-        headerOpacity={headerOpacity}
-      />
-      <AnimatedBackground backgroundTransform={backgroundTransform} />
-
-      <Animated.ScrollView
-        style={{ opacity: fadeAnim }}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme === "dark" ? colors.fg.muted : colors.fg.muted}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.interactive.primary}
+            colors={[colors.interactive.primary]}
           />
         }
-        showsVerticalScrollIndicator={false}
       >
         <ProfileHeader
-          profile={mockProfile}
-          avatarScale={avatarScale}
-          scaleAnim={scaleAnim}
-          slideAnim={slideAnim}
-          fadeAnim={fadeAnim}
-          sparkleAnim={sparkleAnim}
-          formatNumber={formatNumber}
+          {...profileData.user}
+          onNotificationPress={() => handlePress("NotificationsScreen")}
+          onSettingsPress={() => handlePress("Settings")}
         />
 
-        <ProfileBio profile={mockProfile} />
-        <ProfileActions />
+        <ProfileStats stats={profileData.stats} onStatPress={handlePress} />
 
-        <ContributionGraph
-          contributions={mockProfile.contributions}
-          formatNumber={formatNumber}
+        <QuickActions
+          onNewRepo={() => handlePress("New Repository")}
+          onViewRepos={() => handlePress("View Repositories")}
+          onActivity={() => handlePress("View Activity")}
         />
 
-        <RepositoriesSection
-          repositories={mockRepositories}
-          formatNumber={formatNumber}
-          getLanguageColor={getLanguageColor}
-        />
-      </Animated.ScrollView>
+        <ContributionGraph />
+      </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default ProfileScreen;
+}

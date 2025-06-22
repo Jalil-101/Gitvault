@@ -1,138 +1,186 @@
+// app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Platform, View } from "react-native";
+import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Home,
+  Search,
+  Code,
+  User,
+  Activity,
+  GitBranch,
+  Star,
+  Bell,
+  BellIcon,
+} from "lucide-react-native";
 
-import { HapticTab } from "@/components/HapticTab";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { useTheme } from "@/context/ThemeContext";
+import { useModernTheme } from "@/context/ThemeContext";
+import { ModernColors } from "@/constants/Colors";
 
+type IconProps = {
+  focused: boolean;
+  color: string;
+  size: number;
+};
+
+const TabIcon = ({
+  Icon,
+  focused,
+  color,
+  size,
+}: {
+  Icon: React.ComponentType<any>;
+  focused: boolean;
+  color: string;
+  size: number;
+}) => {
+  const { theme, colors } = useModernTheme();
+
+  return (
+    <View
+      className={`
+        items-center justify-center w-8 h-8 rounded-2xl relative mb-0.5
+        ${
+          focused
+            ? theme === "dark"
+              ? "bg-indigo-500/15 border border-indigo-500/30"
+              : "bg-blue-500/10 border border-blue-500/20"
+            : ""
+        }
+      `}
+    >
+      <Icon size={size} color={color} strokeWidth={focused ? 2.5 : 2} />
+      {focused && (
+        <View
+          className="absolute -bottom-2 w-1 h-1 rounded-sm"
+          style={{
+            backgroundColor:
+              theme === "dark"
+                ? colors.interactive.primary
+                : colors.interactive.primary,
+          }}
+        />
+      )}
+    </View>
+  );
+};
 
 export default function TabLayout() {
-  const { isDarkTheme, colors } = useTheme();
+  const { theme, colors, glass, shadows } = useModernTheme();
+  const insets = useSafeAreaInsets();
+
+  const tabBarStyle = {
+    paddingBottom: insets.bottom + 8,
+    backgroundColor:
+      theme === "dark" ? "rgba(18, 18, 26, 0.85)" : "rgba(255, 255, 255, 0.85)",
+    borderTopColor: colors.border.glass,
+    ...shadows.lg,
+  };
+
+  const getTabBarIcon = (iconName: string) => {
+    const iconMap = {
+      index: Home,
+      explore: Search,
+      repositories: Code,
+      activity: Activity,
+      profile: User,
+    };
+
+    return iconMap[iconName as keyof typeof iconMap] || Home;
+  };
 
   return (
     <Tabs
       screenOptions={{
-       
-
-        // Active tab tint color - Uses GitHub's accent blue
-        tabBarActiveTintColor: colors.accentBlue, // GitHub's primary blue
-
-        // Inactive tab tint color - Uses muted foreground color
-        tabBarInactiveTintColor: isDarkTheme
-          ? colors.textSecondary // Dark theme: muted text
-          : colors.textSecondary, // Light theme: muted text
-
-        // Tab bar background color - Uses canvas default (card color)
-        tabBarStyle: {
-          backgroundColor: isDarkTheme
-            ? colors.card // Dark theme: canvas overlay
-            : colors.card, // Light theme: canvas default (white)
-          borderTopColor: isDarkTheme
-            ? colors.border.default // Dark theme: border default
-            : colors.border.default, // Light theme: border default
-          // borderTopWidth: 0.5, // Subtle top border like GitHub
-          height: Platform.OS === "ios" ? 60 : 65, // Platform specific heights
-          paddingBottom: Platform.OS === "ios" ? 20 : 8, // Safe area padding
-          paddingTop: 4,
-          ...Platform.select({
-            ios: {
-              // Use a semi-transparent background on iOS for blur effect
-              position: "absolute",
-              backgroundColor: isDarkTheme
-                ? "rgba(22, 27, 34, 0.95)" // Semi-transparent dark
-                : "rgba(255, 255, 255, 0.95)", // Semi-transparent light
-            },
-            default: {},
-          }),
-        },
-
-        // Tab label styling
-        tabBarLabelStyle: {
-          fontSize: 10, // Small font size like GitHub Mobile
-          fontWeight: "500", // Medium weight
-          marginTop: 2, // Small gap between icon and label
-        },
-
-        // Hide header for all tabs (each screen handles its own header)
         headerShown: false,
-
-        // Use haptic feedback button component
-        tabBarButton: HapticTab,
-
-        // Use custom tab bar background component
-        tabBarBackground: TabBarBackground,
-      }}
-    >
-      {/* ====================================================================================== */}
-      {/* HOME TAB - Main feed/dashboard */}
-      {/* ====================================================================================== */}
-      <Tabs.Screen
-        name="index" // or "home" depending on your file structure
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons
-              name={focused ? "home" : "home-outline"} // Filled when active, outline when inactive
-              size={size || 24}
-              color={color}
+        tabBarStyle: {
+          ...tabBarStyle,
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 8,
+          borderTopWidth: 0.5,
+          height: Platform.OS === "ios" ? 84 : 70,
+          paddingTop: 8,
+          paddingHorizontal: 8,
+        },
+        tabBarBackground: () =>
+          Platform.OS === "ios" ? (
+            <BlurView
+              intensity={80}
+              tint={theme === "dark" ? "dark" : "light"}
+              className="absolute inset-0"
+            />
+          ) : (
+            <View
+              className={`absolute inset-0 ${
+                theme === "dark" ? "bg-slate-900/95" : "bg-white/95"
+              }`}
             />
           ),
-          // Optional: Add badge for unread items
-          // tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+        tabBarActiveTintColor:
+          theme === "dark"
+            ? colors.interactive.primary
+            : colors.interactive.primary,
+        tabBarInactiveTintColor: colors.text.tertiary,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
+          marginTop: 4,
+          fontFamily: Platform.OS === "ios" ? "SF Pro Text" : "Inter",
+        },
+        tabBarItemStyle: {
+          paddingTop: 8,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabIcon Icon={Home} focused={focused} color={color} size={size} />
+          ),
         }}
       />
-
-      {/* ====================================================================================== */}
-      {/* NOTIFICATIONS TAB - Activity feed */}
-      {/* ====================================================================================== */}
       <Tabs.Screen
         name="NotificationsScreen"
         options={{
           title: "Notifications",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons
-              name={focused ? "notifications" : "notifications-outline"}
-              size={size || 24}
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabIcon
+              Icon={BellIcon}
+              focused={focused}
               color={color}
+              size={size}
             />
           ),
-          // Optional: Add notification badge
-          // tabBarBadge: notificationCount > 0 ? notificationCount : undefined,
         }}
       />
-
-      {/* ====================================================================================== */}
-      {/* EXPLORE TAB - Discover content */}
-      {/* ====================================================================================== */}
       <Tabs.Screen
         name="ExploreScreen"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons
-              name={focused ? "compass" : "compass-outline"} // GitHub uses compass icon for explore
-              size={size || 24}
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabIcon
+              Icon={Search}
+              focused={focused}
               color={color}
+              size={size}
             />
           ),
         }}
       />
 
-      {/* ====================================================================================== */}
-      {/* PROFILE TAB - User profile and settings */}
-      {/* ====================================================================================== */}
       <Tabs.Screen
         name="ProfileScreen"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons
-              name={focused ? "person" : "person-outline"}
-              size={size || 24}
-              color={color}
-            />
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabIcon Icon={User} focused={focused} color={color} size={size} />
           ),
         }}
       />

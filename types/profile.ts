@@ -1,27 +1,31 @@
-export interface Repository {
-  id: string;
-  name: string;
-  description: string;
-  language: string;
-  stars: number;
-  forks: number;
-  isPrivate: boolean;
-  updatedAt: string;
+// types/profile.ts
+export interface UserProfile {
+  userName: string;
+  displayName: string;
+  avatarUrl: string;
+  bio?: string;
+  location?: string;
+  company?: string;
+  joinedDate?: string;
 }
 
-export interface UserProfile {
-  name: string;
-  username: string;
-  bio: string;
-  avatar: string;
+export interface ProfileStats {
+  repositories: number;
   followers: number;
   following: number;
-  publicRepos: number;
-  location: string;
-  company: string;
-  website: string;
-  joinedDate: string;
-  contributions: number;
+  totalStars: number;
 }
 
-export type TabType = "repositories" | "stars" | "projects";
+export interface Activity {
+  id: string;
+  type: "commit" | "star" | "watch" | "fork";
+  title: string;
+  repository: string;
+  timestamp: string;
+}
+
+export interface ProfileData {
+  user: UserProfile;
+  stats: ProfileStats;
+  activities: Activity[];
+}

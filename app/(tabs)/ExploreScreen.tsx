@@ -1,84 +1,98 @@
-import React, { useState } from "react";
-import { Platform, StatusBar } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useTheme } from "@/context/ThemeContext";
-import { useExploreData } from "@/hooks/useExploreData";
-import { ExploreTab } from "@/types/explore";
-import { ExploreTabs } from "@/components/explore/ExploreTabs";
+// components/explore/ExploreScreen.tsx
+import React from "react";
+import { View, ScrollView, SafeAreaView, ColorValue,StyleSheet  } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useModernTheme } from "@/context/ThemeContext";
 import { ExploreHeader } from "@/components/explore/ExploreHeader";
-import { ExploreContent } from "@/components/explore/ExploreContent";
+import { TrendingSection } from "@/components/explore/TrendingSection";
+import { DiscoverSection } from "@/components/explore/DiscoverSection";
+import { QuickActionsGrid } from "@/components/explore/QuickActionsGrid";
+import { RecentSearches } from "@/components/explore/RecentSearches";
+// import { PopularTopics } from "@/components/explore/PopularTopics"; // Change to named import
 
-const ExploreScreen = () => {
-  const { colors, isDarkTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState<ExploreTab>("repositories");
-  const [refreshing, setRefreshing] = useState(false);
+interface ExploreScreenProps {
+  onSearch?: (query: string) => void;
+  onRepositoryPress?: (repository: any) => void;
+  onTopicPress?: (topic: string) => void;
+}
 
-  const {
-    mockTrendingRepos,
-    mockTrendingDevs,
-    mockTrendingTopics,
-    loading,
-    error,
-    refetch,
-  } = useExploreData();
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refetch();
-    } catch (error) {
-      console.error("Refresh failed:", error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const handleTabChange = (tab: ExploreTab) => {
-    setActiveTab(tab);
-  };
-
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case "repositories":
-        return mockTrendingRepos;
-      case "developers":
-        return mockTrendingDevs;
-      case "topics":
-        return mockTrendingTopics;
-      default:
-        return [];
-    }
-  };
+const ExploreScreen: React.FC<ExploreScreenProps> = ({
+  onSearch,
+  onRepositoryPress,
+  onTopicPress,
+}) => {
+  const { colors, isDarkTheme, shadows,gradients } = useModernTheme();
 
   return (
     <SafeAreaView
-      className="flex-1 bg-github-light-canvas-subtle dark:bg-github-dark-canvas-subtle"
-      style={{
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-      }}
+      className="flex-1"
+      style={{ backgroundColor: colors.background.primary }}
     >
-      <StatusBar
-        barStyle={isDarkTheme ? "light-content" : "dark-content"}
-        backgroundColor={
-          isDarkTheme ? colors.canvas.subtle : colors.canvas.subtle
-        }
-        translucent={false}
+      <LinearGradient
+        colors={
+          gradients.background as [ColorValue, ColorValue, ...ColorValue[]]
+        } // Cast to the required type
+        style={StyleSheet.absoluteFillObject}
       />
 
-      <ExploreHeader>
-        <ExploreTabs activeTab={activeTab} setActiveTab={handleTabChange} />
-      </ExploreHeader>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
+        {/* Header */}
+        <ExploreHeader
+          onSearch={onSearch}
+          onNotificationPress={() => {}}
+          onMenuPress={() => {}}
+        />
 
-      <ExploreContent
-        activeTab={activeTab}
-        data={getCurrentData()}
-        loading={loading}
-        error={error}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-      />
+        {/* Main Content Container */}
+        <View
+          className="mx-4 mt-2 rounded-2xl"
+          style={{
+            backgroundColor: `${colors.surface.primary}95`,
+            borderWidth: 1,
+            borderColor: `${colors.accents.blue.main}10`,
+            ...shadows.md,
+          }}
+        >
+          <LinearGradient
+            colors={[
+              `${colors.surface.primary}95`,
+              `${colors.surface.secondary}50`,
+              `${colors.surface.primary}95`,
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            className="absolute inset-0 rounded-2xl"
+          />
+
+          <View className="p-2 space-y-6">
+            <TrendingSection onRepositoryPress={onRepositoryPress} />
+            <QuickActionsGrid
+              onActionPress={(actionId) =>
+                console.log("Action pressed:", actionId)
+              }
+            />
+            <DiscoverSection onRepositoryPress={onRepositoryPress} />
+            {/* <PopularTopics onTopicPress={onTopicPress} /> */}
+            <RecentSearches
+              onSearch={onSearch}
+              onClearSearch={(query) => console.log("Clear search:", query)}
+            />
+          </View>
+        </View>
+
+        {/* Bottom Spacer */}
+        <View className="h-8" />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
+// Default export for route file
 export default ExploreScreen;
+
+// Named export for component usage elsewhere
+export { ExploreScreen };

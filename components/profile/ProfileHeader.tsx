@@ -1,98 +1,141 @@
 // components/profile/ProfileHeader.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, Image, Animated } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/context/ThemeContext";
+import { View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  Bell,
+  Settings,
+  Building,
+  MapPin,
+  Calendar,
+} from "lucide-react-native";
+import { useModernTheme } from "@/context/ThemeContext";
 import { UserProfile } from "@/types/profile";
+import { Link, useRouter } from "expo-router";
 
-interface ProfileHeaderProps {
-  profile: UserProfile;
-  avatarScale: Animated.AnimatedAddition<number>;
-  scaleAnim: Animated.Value;
-  slideAnim: Animated.Value;
-  fadeAnim: Animated.Value;
-  sparkleAnim: Animated.Value;
-  formatNumber: (num: number) => string;
+interface ProfileHeaderProps extends UserProfile {
+  onNotificationPress?: () => void;
+  onSettingsPress?: () => void;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
-  profile,
-  avatarScale,
-  scaleAnim,
-  slideAnim,
-  fadeAnim,
-  sparkleAnim,
-  formatNumber,
+  userName,
+  displayName,
+  avatarUrl,
+  bio,
+  location,
+  company,
+  joinedDate,
+  onNotificationPress,
+  onSettingsPress,
 }) => {
-  const { colors } = useTheme();
+  const { colors } = useModernTheme();
 
   return (
-    <Animated.View
-      style={{
-        transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
-        opacity: fadeAnim,
-      }}
-      className="relative px-6 pt-8 pb-6"
-    >
-      {/* Background Gradient */}
-      <View className="absolute inset-0 bg-gradient-to-br from-github-light-accent-subtle to-github-light-canvas-subtle dark:from-github-dark-accent-subtle dark:to-github-dark-canvas-subtle opacity-30" />
-
-      {/* Sparkle Effects */}
-      <Animated.View
-        style={{
-          opacity: sparkleAnim,
-          position: "absolute",
-          top: 20,
-          right: 30,
-        }}
-      >
-        <Ionicons name="sparkles" size={16} color={colors.accent.emphasis} />
-      </Animated.View>
-
-      <View className="flex-row items-start relative z-10 pt-4">
-        <Animated.View
-          style={{ transform: [{ scale: avatarScale }] }}
-          className="relative"
+    <View className="px-6 pt-4 pb-6">
+      {/* Top Actions */}
+      <View className="flex-row justify-end mb-4">
+        <TouchableOpacity
+          onPress={onNotificationPress}
+          className="p-3 rounded-full mr-2"
+          style={{ backgroundColor: colors.surface.secondary }}
         >
-          <View className="w-24 h-24 rounded-2xl bg-gradient-to-br from-github-light-accent-emphasis to-github-light-success-emphasis dark:from-github-dark-accent-emphasis dark:to-github-dark-success-emphasis p-0.5">
-            <Image
-              source={{ uri: profile.avatar }}
-              className="w-full h-full rounded-2xl"
-            />
-          </View>
-          {/* Online indicator */}
-          <View className="absolute -bottom-1 -right-1 w-6 h-6 bg-github-light-success-emphasis dark:bg-github-dark-success-emphasis rounded-full border-2 border-github-light-canvas-default dark:border-github-dark-canvas-default" />
-        </Animated.View>
+          <Link href="/screens/SearchScreen">
+            <Bell size={20} color={colors.text.primary} />
+          </Link>
+        </TouchableOpacity>
 
-        <View className="flex-1 ml-4">
-          <Text className="text-github-light-fg-default dark:text-github-dark-fg-default text-2xl font-bold mb-1">
-            {profile.name}
-          </Text>
-          <Text className="text-github-light-fg-muted dark:text-github-dark-fg-muted text-base mb-3">
-            {profile.username}
-          </Text>
+        <TouchableOpacity
+          onPress={onSettingsPress}
+          className="p-3 rounded-full"
+          style={{ backgroundColor: colors.surface.secondary }}
+        >
+          <Link href="/screens/SettingsScreen">
+            <Settings size={20} color={colors.text.primary} />
+          </Link>
+        </TouchableOpacity>
+      </View>
 
-          <View className="flex-row space-x-6">
-            <TouchableOpacity className="items-center">
-              <Text className="text-github-light-fg-default dark:text-github-dark-fg-default font-bold text-lg mr-4">
-                {formatNumber(profile.followers)}
-              </Text>
-              <Text className="text-github-light-fg-muted dark:text-github-dark-fg-muted text-sm mr-4">
-                followers
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="items-center">
-              <Text className="text-github-light-fg-default dark:text-github-dark-fg-default font-bold text-lg mr-4">
-                {formatNumber(profile.following)}
-              </Text>
-              <Text className="text-github-light-fg-muted dark:text-github-dark-fg-muted text-sm mr-4">
-                following
-              </Text>
-            </TouchableOpacity>
+      {/* Profile Info */}
+      <View className="items-center mb-6">
+        <View className="relative mb-4">
+          <Image
+            source={{ uri: avatarUrl }}
+            className="w-24 h-24 rounded-full"
+            style={{ backgroundColor: colors.surface.secondary }}
+          />
+          <View
+            className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full items-center justify-center border-2"
+            style={{
+              backgroundColor: colors.accents.green.main,
+              borderColor: colors.background.primary,
+            }}
+          >
+            <View className="w-3 h-3 rounded-full bg-white" />
           </View>
         </View>
+
+        <Text
+          className="text-2xl font-bold mb-1"
+          style={{ color: colors.text.primary }}
+        >
+          {displayName}
+        </Text>
+
+        <Text
+          className="text-base mb-4"
+          style={{ color: colors.text.secondary }}
+        >
+          @{userName}
+        </Text>
+
+        {bio && (
+          <Text
+            className="text-center text-base leading-6 mb-4 px-4"
+            style={{ color: colors.text.primary }}
+          >
+            {bio}
+          </Text>
+        )}
+
+        {/* Meta Info */}
+        <View className="flex-row items-center justify-center flex-wrap">
+          {company && (
+            <View className="flex-row items-center mr-4 mb-2">
+              <Building size={16} color={colors.text.tertiary} />
+              <Text
+                className="text-sm ml-2"
+                style={{ color: colors.text.secondary }}
+              >
+                {company}
+              </Text>
+            </View>
+          )}
+
+          {location && (
+            <View className="flex-row items-center mr-4 mb-2">
+              <MapPin size={16} color={colors.text.tertiary} />
+              <Text
+                className="text-sm ml-2"
+                style={{ color: colors.text.secondary }}
+              >
+                {location}
+              </Text>
+            </View>
+          )}
+
+          {joinedDate && (
+            <View className="flex-row items-center mb-2">
+              <Calendar size={16} color={colors.text.tertiary} />
+              <Text
+                className="text-sm ml-2"
+                style={{ color: colors.text.secondary }}
+              >
+                Joined {joinedDate}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
-    </Animated.View>
+    </View>
   );
 };

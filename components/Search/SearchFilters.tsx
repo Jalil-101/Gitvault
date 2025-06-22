@@ -1,79 +1,64 @@
-// components/SearchFilters.tsx
+// components/search/SearchFilters.tsx
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-} from "react-native";
-import { SearchFilters as SearchFiltersType } from "@/types/search";
+import { View, TouchableOpacity, ScrollView } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
+import { ThemedText } from "@/components/ThemedText";
 
-interface SearchFiltersProps {
-  filters: SearchFiltersType;
-  onFiltersChange: (filters: SearchFiltersType) => void;
-  animationValue: Animated.Value;
+interface FilterOption {
+  id: string;
+  label: string;
+  active: boolean;
 }
 
-const FILTER_TYPES: SearchFiltersType["type"][] = [
-  "repositories",
-  "users",
-  "code",
-  "issues",
-];
+interface SearchFiltersProps {
+  filters: FilterOption[];
+  onFilterPress: (filterId: string) => void;
+}
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
   filters,
-  onFiltersChange,
-  animationValue,
+  onFilterPress,
 }) => {
-  const handleTypeChange = (type: SearchFiltersType["type"]) => {
-    onFiltersChange({ ...filters, type });
-  };
+  const { colors, isDarkTheme } = useModernTheme();
 
   return (
-    <Animated.View
-      style={{
-        height: animationValue.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 120],
-        }),
-        opacity: animationValue,
-      }}
-      className="mx-4 mb-4 overflow-hidden"
-    >
-      <View className="bg-github-light-canvas-default dark:bg-github-dark-canvas-overlay rounded-xl border border-github-light-border-default dark:border-github-dark-border-default p-4">
-        <Text className="text-github-light-fg-default dark:text-github-dark-fg-default font-semibold mb-3">
-          Search Filters
-        </Text>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="flex-row space-x-2">
-            {FILTER_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                onPress={() => handleTypeChange(type)}
-                className={`px-3 py-2 rounded-lg ${
-                  filters.type === type
-                    ? "bg-github-light-accent-subtle dark:bg-github-dark-accent-subtle"
-                    : "bg-github-light-canvas-inset dark:bg-github-dark-canvas-inset"
-                }`}
-                activeOpacity={0.7}
-              >
-                <Text
-                  className={`text-sm capitalize ${
-                    filters.type === type
-                      ? "text-github-light-accent-fg dark:text-github-dark-accent-fg font-medium"
-                      : "text-github-light-fg-muted dark:text-github-dark-fg-muted"
-                  }`}
-                >
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-    </Animated.View>
+    <View className="mb-4">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16 }}
+        className="flex-row"
+      >
+        {filters.map((filter, index) => (
+          <TouchableOpacity
+            key={filter.id}
+            onPress={() => onFilterPress(filter.id)}
+            className={`px-4 py-2 rounded-full mr-3 ${
+              filter.active
+                ? isDarkTheme
+                  ? "bg-modern-dark-interactive-primary"
+                  : "bg-modern-light-interactive-primary"
+                : isDarkTheme
+                ? "bg-modern-dark-surface-secondary"
+                : "bg-modern-light-surface-secondary"
+            }`}
+          >
+            <ThemedText
+              className={`text-sm font-medium ${
+                filter.active
+                  ? isDarkTheme
+                    ? "text-modern-dark-text-inverse"
+                    : "text-modern-light-text-inverse"
+                  : isDarkTheme
+                  ? "text-modern-dark-text-secondary"
+                  : "text-modern-light-text-secondary"
+              }`}
+            >
+              {filter.label}
+            </ThemedText>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };

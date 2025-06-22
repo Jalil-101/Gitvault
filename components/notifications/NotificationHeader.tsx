@@ -1,104 +1,83 @@
+import { useModernTheme } from "@/context/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 // components/notifications/NotificationHeader.tsx
-import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-
-export type FilterType = "all" | "unread" | "participating";
-
 interface NotificationHeaderProps {
-  isSelectionMode: boolean;
-  onMarkSelectedAsRead: () => void;
-  onCancelSelection: () => void;
+  unreadCount: number;
   onMarkAllAsRead: () => void;
-  activeFilter: FilterType;
-  onFilterChange: (filter: FilterType) => void;
-  filterCounts: {
-    all: number;
-    unread: number;
-    participating: number;
-  };
+  onSettings: () => void;
 }
 
 export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
-  isSelectionMode,
-  onMarkSelectedAsRead,
-  onCancelSelection,
+  unreadCount,
   onMarkAllAsRead,
-  activeFilter,
-  onFilterChange,
-  filterCounts,
+  onSettings,
 }) => {
+  const { colors, isDarkTheme } = useModernTheme();
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="px-4 py-3 bg-github-light-canvas-default dark:bg-github-dark-canvas-overlay border-b border-github-light-border-default dark:border-github-dark-border-default">
-      {/* Title and Actions Row */}
-      <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-semibold text-github-light-fg-default dark:text-github-dark-fg-default pt-5">
+    <View
+      className="flex-row items-center justify-between px-4 py-4"
+      style={{
+        paddingTop: insets.top + 16, // Add safe area top + extra spacing
+      }}
+    >
+      <View>
+        <Text
+          className={`text-2xl font-bold ${
+            isDarkTheme
+              ? "text-modern-dark-text-primary"
+              : "text-modern-light-text-primary"
+          }`}
+        >
           Notifications
         </Text>
-
-        {/* Conditional action buttons based on selection mode */}
-        {isSelectionMode ? (
-          <View className="flex-row items-center space-x-3">
-            <TouchableOpacity
-              onPress={onMarkSelectedAsRead}
-              className="px-3 py-1 bg-github-light-accent-subtle dark:bg-github-dark-accent-subtle rounded-md"
-            >
-              <Text className="text-sm font-medium text-github-light-accent-fg dark:text-github-dark-accent-fg pt-5">
-                Mark Read
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onCancelSelection}>
-              <Text className="text-sm font-medium text-github-light-fg-muted dark:text-github-dark-fg-muted">
-                Cancel
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity onPress={onMarkAllAsRead}>
-            <Text className="text-sm font-medium text-github-light-accent-fg dark:text-github-dark-accent-fg">
-              Mark all read
-            </Text>
-          </TouchableOpacity>
+        {unreadCount > 0 && (
+          <Text
+            className={`text-sm ${
+              isDarkTheme
+                ? "text-modern-dark-text-secondary"
+                : "text-modern-light-text-secondary"
+            }`}
+          >
+            {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
+          </Text>
         )}
       </View>
 
-      {/* Filter Tabs */}
-      <View className="flex-row mt-3 space-x-1">
-        {[
-          { key: "all" as FilterType, label: "All", count: filterCounts.all },
-          {
-            key: "unread" as FilterType,
-            label: "Unread",
-            count: filterCounts.unread,
-          },
-          {
-            key: "participating" as FilterType,
-            label: "Participating",
-            count: filterCounts.participating,
-          },
-        ].map((filter) => (
+      <View className="flex-row items-center">
+        {unreadCount > 0 && (
           <TouchableOpacity
-            key={filter.key}
-            onPress={() => onFilterChange(filter.key)}
-            className={`px-3 py-2 rounded-md  ${
-              activeFilter === filter.key
-                ? "bg-github-light-accent-emphasis dark:bg-github-dark-accent-emphasis"
-                : "bg-github-light-canvas-inset dark:bg-github-dark-canvas-inset"
+            onPress={onMarkAllAsRead}
+            className={`px-3 py-2 rounded-lg mr-3 ${
+              isDarkTheme
+                ? "bg-modern-dark-surface-secondary"
+                : "bg-modern-light-surface-secondary"
             }`}
           >
             <Text
               className={`text-sm font-medium ${
-                activeFilter === filter.key
-                  ? "text-github-light-fg-onEmphasis dark:text-github-dark-fg-onEmphasis"
-                  : "text-github-light-fg-muted dark:text-github-dark-fg-muted"
+                isDarkTheme
+                  ? "text-modern-dark-text-primary"
+                  : "text-modern-light-text-primary"
               }`}
             >
-              {filter.label} {filter.count > 0 && `(${filter.count})`}
+              Mark all read
             </Text>
           </TouchableOpacity>
-        ))}
+        )}
+
+        <TouchableOpacity onPress={onSettings} className="p-2">
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color={isDarkTheme ? colors.text.secondary : colors.text.primary}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-export default NotificationHeader;

@@ -1,45 +1,104 @@
-// components/profile/ContributionGraph.tsx
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
+import {
+  ContributionGraphProps,
+  ContributionDay,
+} from "../../types/contribution";
+import {
+  generateMockContributions,
+  groupContributionsByMonth,
+} from "@/utils/contributions/contributionData";
+import { ContributionHeader } from "@/components/profile/contribution/ContributionHeader";
+import { ContributionStats } from "@/components/profile/contribution/ContributionStats";
+import { MonthNavigation } from "@/components/profile/contribution/MonthNavigation";
+import { ContributionCalendar } from "@/components/profile/contribution/ContributionCalendar";
+import { SelectedDayInfo } from "@/components/profile/contribution/SelectedDayInfo";
 
-interface ContributionGraphProps {
-  contributions: number;
-  formatNumber: (num: number) => string;
-}
+const mockContributions = generateMockContributions();
 
 export const ContributionGraph: React.FC<ContributionGraphProps> = ({
-  contributions,
-  formatNumber,
+  contributions = mockContributions,
+  totalContributions = 1247,
+  currentStreak = 12,
+  longestStreak = 87,
 }) => {
-  return (
-    <View className="mx-6 mb-6">
-      <View className="bg-github-light-canvas-overlay dark:bg-github-dark-canvas-overlay border border-github-light-border-default dark:border-github-dark-border-default rounded-2xl p-6">
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-github-light-fg-default dark:text-github-dark-fg-default font-bold text-lg">
-            {formatNumber(contributions)} contributions
-          </Text>
-          <Text className="text-github-light-fg-muted dark:text-github-dark-fg-muted text-sm">
-            last year
-          </Text>
-        </View>
+  const { colors, shadows } = useModernTheme();
+  const [selectedDay, setSelectedDay] = useState<ContributionDay | null>(null);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(11); // Start with current month
 
-        <View className="flex-row flex-wrap gap-1">
-          {Array.from({ length: 84 }).map((_, index) => (
-            <View
-              key={index}
-              className={`w-3 h-3 rounded ${
-                Math.random() > 0.7
-                  ? "bg-github-light-success-emphasis dark:bg-github-dark-success-emphasis"
-                  : Math.random() > 0.5
-                  ? "bg-github-light-success-muted dark:bg-github-dark-success-muted"
-                  : Math.random() > 0.3
-                  ? "bg-github-light-border-muted dark:bg-github-dark-border-muted"
-                  : "bg-github-light-border-subtle dark:bg-github-dark-border-subtle"
-              }`}
-            />
-          ))}
-        </View>
-      </View>
+  const monthlyContributions = groupContributionsByMonth(contributions);
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const currentMonth = monthlyContributions[currentMonthIndex] || [];
+  const currentDate =
+    currentMonth.length > 0 ? new Date(currentMonth[0].date) : new Date();
+  const monthName = monthNames[currentDate.getMonth()];
+  const year = currentDate.getFullYear();
+
+  const handlePreviousMonth = () => {
+    setCurrentMonthIndex(Math.max(0, currentMonthIndex - 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonthIndex(
+      Math.min(monthlyContributions.length - 1, currentMonthIndex + 1)
+    );
+  };
+
+  return (
+    <View className="mb-6">
+      <ContributionHeader
+        totalContributions={totalContributions}
+        colors={colors}
+        shadows={shadows}
+      />
+
+      <ContributionStats
+        currentStreak={currentStreak}
+        longestStreak={longestStreak}
+        colors={colors}
+        shadows={shadows}
+      />
+
+      <MonthNavigation
+        currentMonthIndex={currentMonthIndex}
+        totalMonths={monthlyContributions.length}
+        monthName={monthName}
+        year={year}
+        onPrevious={handlePreviousMonth}
+        onNext={handleNextMonth}
+        colors={colors}
+        shadows={shadows}
+      />
+
+      <ContributionCalendar
+        monthContributions={currentMonth}
+        onDayPress={setSelectedDay}
+        colors={colors}
+        shadows={shadows}
+      />
+
+      {selectedDay && (
+        <SelectedDayInfo
+          selectedDay={selectedDay}
+          colors={colors}
+          shadows={shadows}
+        />
+      )}
     </View>
   );
 };
