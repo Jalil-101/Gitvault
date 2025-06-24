@@ -13,59 +13,11 @@ import {
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
+import { QuickAction } from "@/types/explore";
+import { quickActions } from "@/data/mockData";
 
-interface QuickAction {
-  id: string;
-  title: string;
-  icon: React.ComponentType<any>;
-  color: string;
-  gradient: readonly string[];
-}
 
-const quickActions: QuickAction[] = [
-  {
-    id: "trending",
-    title: "Trending",
-    icon: TrendingUp,
-    color: "green",
-    gradient: ["#10B981", "#059669"],
-  },
-  {
-    id: "repositories",
-    title: "Repositories",
-    icon: Book,
-    color: "blue",
-    gradient: ["#3B82F6", "#2563EB"],
-  },
-  {
-    id: "users",
-    title: "Users",
-    icon: Users,
-    color: "purple",
-    gradient: ["#8B5CF6", "#A855F7"],
-  },
-  {
-    id: "topics",
-    title: "Topics",
-    icon: Code,
-    color: "orange",
-    gradient: ["#F97316", "#EA580C"],
-  },
-  {
-    id: "stars",
-    title: "Stars",
-    icon: Star,
-    color: "red",
-    gradient: ["#EF4444", "#DC2626"],
-  },
-  {
-    id: "awesome",
-    title: "Awesome",
-    icon: Zap,
-    color: "indigo",
-    gradient: ["#6366F1", "#4F46E5"],
-  },
-];
+
 
 interface QuickActionsGridProps {
   onActionPress?: (actionId: string) => void;

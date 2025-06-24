@@ -4,18 +4,13 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Clock, X, Search } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
-
+import { recentSearches } from "@/data/mockData"; 
 interface RecentSearchesProps {
   onSearch?: (query: string) => void;
   onClearSearch?: (query: string) => void;
 }
 
-const recentSearches = [
-  "react native",
-  "typescript tutorial",
-  "nextjs deployment",
-  "tailwind components",
-];
+
 
 export const RecentSearches: React.FC<RecentSearchesProps> = ({
   onSearch,

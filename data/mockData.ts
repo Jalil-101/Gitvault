@@ -1,96 +1,138 @@
-// data/mockData.ts
-import { StatItem, ActivityItem, TrendingRepo, QuickAction } from "../types";
+import { QuickAction } from "@/types/explore";
+import { TrendingUp, Book, Users, Code, Star, Zap } from "lucide-react-native";
 
-export const statsData: StatItem[] = [
+
+
+
+
+
+//Explore related mockdata                 
+export const mockDiscoverRepos = [
   {
-    label: "Repositories",
-    value: "47",
-    icon: "folder-outline",
-    color: "#6366F1",
-    gradient: ["#6366F1", "#8B5CF6"],
+    id: 4,
+    name: "facebook/react",
+    description: "The library for web and native user interfaces",
+    stars: 220000,
+    language: "JavaScript",
+    languageColor: "#f1e05a",
+    forks: 45000,
   },
   {
-    label: "Commits",
-    value: "1.2k",
-    icon: "git-commit-outline",
-    color: "#10B981",
-    gradient: ["#10B981", "#06D6A0"],
+    id: 5,
+    name: "vuejs/vue",
+    description:
+      "This is the repo for Vue 2. For Vue 3, go to https://github.com/vuejs/core",
+    stars: 206000,
+    language: "JavaScript",
+    languageColor: "#f1e05a",
+    forks: 33700,
   },
   {
-    label: "Issues",
-    value: "23",
-    icon: "alert-circle-outline",
-    color: "#F59E0B",
-    gradient: ["#F59E0B", "#F97316"],
+    id: 6,
+    name: "microsoft/vscode",
+    description: "Visual Studio Code - Code Editing. Redefined.",
+    stars: 158000,
+    language: "TypeScript",
+    languageColor: "#3178c6",
+    forks: 28000,
   },
   {
-    label: "Stars",
-    value: "456",
-    icon: "star-outline",
-    color: "#EF4444",
-    gradient: ["#EF4444", "#F97316"],
+    id: 7,
+    name: "flutter/flutter",
+    description:
+      "Flutter makes it easy and fast to build beautiful apps for mobile and beyond",
+    stars: 162000,
+    language: "Dart",
+    languageColor: "#00B4AB",
+    forks: 26700,
   },
 ];
 
-export const activityData: ActivityItem[] = [
+export const mockTrendingRepos = [
   {
     id: 1,
-    user: "alex_dev",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
-    action: "merged pull request #142",
-    repo: "next-gen-ui",
-    time: "2h",
-    type: "merge",
-    color: "#8B5CF6",
+    name: "microsoft/TypeScript",
+    description:
+      "TypeScript is a superset of JavaScript that compiles to clean JavaScript output.",
+    stars: 95200,
+    language: "TypeScript",
+    languageColor: "#3178c6",
+    todayStars: 127,
   },
   {
     id: 2,
-    user: "sarah_code",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face",
-    action: "released v2.1.0",
-    repo: "design-system",
-    time: "4h",
-    type: "release",
-    color: "#10B981",
+    name: "vercel/next.js",
+    description: "The React Framework for the Web",
+    stars: 119000,
+    language: "JavaScript",
+    languageColor: "#f1e05a",
+    todayStars: 89,
   },
   {
     id: 3,
-    user: "mike_ui",
-    avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
-    action: "opened issue #89",
-    repo: "mobile-components",
-    time: "6h",
-    type: "issue",
-    color: "#F59E0B",
+    name: "tailwindlabs/tailwindcss",
+    description:
+      "A utility-first CSS framework for rapidly building custom designs.",
+    stars: 78500,
+    language: "CSS",
+    languageColor: "#563d7c",
+    todayStars: 156,
   },
 ];
-
-export const trendingRepos: TrendingRepo[] = [
-  {
-    name: "neural-networks/transformer",
-    description: "State-of-the-art transformer architecture implementation",
-    language: "Python",
-    stars: "12.8k",
-    trend: "+2.3k",
-    languageColor: "#3776AB",
-    isHot: true,
-  },
-  {
-    name: "web3/defi-protocol",
-    description: "Decentralized finance protocol with yield farming",
-    language: "Solidity",
-    stars: "8.4k",
-    trend: "+1.8k",
-    languageColor: "#363636",
-    isHot: false,
-  },
+export const recentSearches = [
+  "react native",
+  "typescript tutorial",
+  "nextjs deployment",
+  "tailwind components",
 ];
-
 export const quickActions: QuickAction[] = [
-  { icon: "search", label: "Search", color: "#10B981" },
-  { icon: "git-pull-request", label: "PRs", color: "#F59E0B" },
-  { icon: "alert-circle", label: "Issues", color: "#EF4444" },
+  {
+    id: "trending",
+    title: "Trending",
+    icon: TrendingUp,
+    color: "green",
+    gradient: ["#10B981", "#059669"],
+  },
+  {
+    id: "repositories",
+    title: "Repositories",
+    icon: Book,
+    color: "blue",
+    gradient: ["#3B82F6", "#2563EB"],
+  },
+  {
+    id: "users",
+    title: "Users",
+    icon: Users,
+    color: "purple",
+    gradient: ["#8B5CF6", "#A855F7"],
+  },
+  {
+    id: "topics",
+    title: "Topics",
+    icon: Code,
+    color: "orange",
+    gradient: ["#F97316", "#EA580C"],
+  },
+  {
+    id: "stars",
+    title: "Stars",
+    icon: Star,
+    color: "red",
+    gradient: ["#EF4444", "#DC2626"],
+  },
+  {
+    id: "awesome",
+    title: "Awesome",
+    icon: Zap,
+    color: "indigo",
+    gradient: ["#6366F1", "#4F46E5"],
+  },
 ];
+
+
+
+
+
+
+

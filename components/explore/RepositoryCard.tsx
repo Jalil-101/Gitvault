@@ -4,17 +4,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Star, GitFork, TrendingUp } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
+import { Repository } from "@/types/explore";
 
-interface Repository {
-  id: number;
-  name: string;
-  description: string;
-  stars: number;
-  language: string;
-  languageColor: string;
-  todayStars?: number;
-  forks?: number;
-}
 
 interface RepositoryCardProps {
   repository: Repository;

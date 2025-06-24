@@ -5,51 +5,11 @@ import { Compass, ArrowRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
 import { RepositoryCard } from "./RepositoryCard";
-
+import { mockDiscoverRepos } from "@/data/mockData";
 interface DiscoverSectionProps {
   onRepositoryPress?: (repository: any) => void;
 }
 
-const mockDiscoverRepos = [
-  {
-    id: 4,
-    name: "facebook/react",
-    description: "The library for web and native user interfaces",
-    stars: 220000,
-    language: "JavaScript",
-    languageColor: "#f1e05a",
-    forks: 45000,
-  },
-  {
-    id: 5,
-    name: "vuejs/vue",
-    description:
-      "This is the repo for Vue 2. For Vue 3, go to https://github.com/vuejs/core",
-    stars: 206000,
-    language: "JavaScript",
-    languageColor: "#f1e05a",
-    forks: 33700,
-  },
-  {
-    id: 6,
-    name: "microsoft/vscode",
-    description: "Visual Studio Code - Code Editing. Redefined.",
-    stars: 158000,
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    forks: 28000,
-  },
-  {
-    id: 7,
-    name: "flutter/flutter",
-    description:
-      "Flutter makes it easy and fast to build beautiful apps for mobile and beyond",
-    stars: 162000,
-    language: "Dart",
-    languageColor: "#00B4AB",
-    forks: 26700,
-  },
-];
 
 export const DiscoverSection: React.FC<DiscoverSectionProps> = ({
   onRepositoryPress,

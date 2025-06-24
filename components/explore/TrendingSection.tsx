@@ -5,42 +5,11 @@ import { TrendingUp, ArrowRight } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
 import { RepositoryCard } from "@/components/explore/RepositoryCard";
-
+import { mockTrendingRepos } from "@/data/mockData";
 interface TrendingSectionProps {
   onRepositoryPress?: (repository: any) => void;
 }
 
-const mockTrendingRepos = [
-  {
-    id: 1,
-    name: "microsoft/TypeScript",
-    description:
-      "TypeScript is a superset of JavaScript that compiles to clean JavaScript output.",
-    stars: 95200,
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    todayStars: 127,
-  },
-  {
-    id: 2,
-    name: "vercel/next.js",
-    description: "The React Framework for the Web",
-    stars: 119000,
-    language: "JavaScript",
-    languageColor: "#f1e05a",
-    todayStars: 89,
-  },
-  {
-    id: 3,
-    name: "tailwindlabs/tailwindcss",
-    description:
-      "A utility-first CSS framework for rapidly building custom designs.",
-    stars: 78500,
-    language: "CSS",
-    languageColor: "#563d7c",
-    todayStars: 156,
-  },
-];
 
 export const TrendingSection: React.FC<TrendingSectionProps> = ({
   onRepositoryPress,
