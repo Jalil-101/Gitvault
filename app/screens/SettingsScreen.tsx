@@ -1,218 +1,295 @@
 // screens/SettingsScreen.tsx
-import { SettingsGroup } from "@/components/settings/SettingsGroup";
-import { SettingsSelector } from "@/components/settings/SettingsSelector";
-import { SettingsSlider } from "@/components/settings/SettingsSlider";
-import { SettingsButton } from "@/components/settings/SettingsButton";
-import React, { JSX, useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
+import { ProfileCard } from "@/components/settings/ProfileCard";
+import { SettingsSection } from "@/components/settings/SettingsSection";
+import { SettingsItem } from "@/components/settings/SettingsItem";
+import { DangerButton } from "@/components/settings/DangerButton";
+import { StatsCard } from "@/components/settings/StatsCard";
+import { MODERN_DARK } from "@/constants/Colors";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { Alert, SafeAreaView, ScrollView, StatusBar } from "react-native";
 
-export default function SettingsScreen(): JSX.Element {
-  // State management for all settings
-  const [fontSize, setFontSize] = useState(16);
-  const [theme, setTheme] = useState("dark");
-  const [language, setLanguage] = useState("en");
-  const [volume, setVolume] = useState(75);
-  const [notifications, setNotifications] = useState("all");
-  const [autoBackup, setAutoBackup] = useState("daily");
+export default function SettingsScreen() {
+  const router = useRouter();
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const [biometricAuth, setBiometricAuth] = useState(true);
 
-  // Options for selectors
-  const themeOptions = [
-    { label: "Dark Mode", value: "dark" },
-    { label: "Light Mode", value: "light" },
-    { label: "Follow System", value: "system" },
-  ];
-
-  const languageOptions = [
-    { label: "English", value: "en" },
-    { label: "Spanish", value: "es" },
-    { label: "French", value: "fr" },
-    { label: "German", value: "de" },
-    { label: "Japanese", value: "ja" },
-  ];
-
-  const notificationOptions = [
-    { label: "All Notifications", value: "all" },
-    { label: "Important Only", value: "important" },
-    { label: "None", value: "none" },
-  ];
-
-  const backupOptions = [
-    { label: "Never", value: "never" },
-    { label: "Daily", value: "daily" },
-    { label: "Weekly", value: "weekly" },
-    { label: "Monthly", value: "monthly" },
-  ];
-
-  // Action handlers
-  const handleSaveSettings = () => {
-    // Here you would save to AsyncStorage, API, etc.
-    Alert.alert(
-      "Settings Saved",
-      "Your preferences have been updated successfully."
-    );
+  const handleLogout = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: () => {
+          // Handle logout logic
+          console.log("User logged out");
+        },
+      },
+    ]);
   };
 
-  const handleResetSettings = () => {
+  const handleDeleteAccount = () => {
     Alert.alert(
-      "Reset Settings",
-      "Are you sure you want to reset all settings to default values?",
+      "Delete Account",
+      "This action cannot be undone. Are you sure you want to delete your account?",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Reset",
+          text: "Delete",
           style: "destructive",
           onPress: () => {
-            setFontSize(16);
-            setTheme("dark");
-            setLanguage("en");
-            setVolume(75);
-            setNotifications("all");
-            setAutoBackup("daily");
+            // Handle account deletion
+            console.log("Account deletion requested");
           },
         },
       ]
     );
   };
 
-  const handleExportData = () => {
-    // Implement data export logic
-    Alert.alert(
-      "Export Data",
-      "Data export functionality would be implemented here."
-    );
-  };
-  
-    return (
-      <SafeAreaView className="flex-1 bg-modern-dark-bg-primary">
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Display Settings */}
-          <SettingsGroup
-            title="Display & Appearance"
-            description="Customize how the app looks and feels"
-            variant="card"
-          >
-            <SettingsSelector
-              icon="color-palette-outline"
-              iconBackground="#6366F1"
-              title="Theme"
-              subtitle="Choose your preferred color scheme"
-              options={themeOptions}
-              selectedValue={theme}
-              onValueChange={setTheme}
-            />
+  const accountStats = [
+    {
+      label: "Repositories",
+      value: "47",
+      icon: "folder-outline" as const,
+      color: MODERN_DARK.accents.purple.main,
+    },
+    {
+      label: "Followers",
+      value: "1.3K",
+      icon: "people-outline" as const,
+      color: MODERN_DARK.accents.blue.main,
+    },
+    {
+      label: "Following",
+      value: "180",
+      icon: "person-add-outline" as const,
+      color: MODERN_DARK.accents.green.main,
+    },
+    {
+      label: "Stars",
+      value: "2.3K",
+      icon: "star-outline" as const,
+      color: MODERN_DARK.accents.orange.main,
+    },
+  ];
 
-            <SettingsSlider
-              icon="text-outline"
-              iconBackground="#10B981"
-              title="Font Size"
-              subtitle="Adjust text size for better readability"
-              value={fontSize}
-              minimumValue={12}
-              maximumValue={24}
-              step={2}
-              onValueChange={setFontSize}
-              formatValue={(value) => `${value}px`}
-              isLast
-            />
-          </SettingsGroup>
+  return (
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: MODERN_DARK.background.primary }}
+    >
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={MODERN_DARK.background.primary}
+      />
 
-          {/* Audio Settings */}
-          <SettingsGroup
-            title="Audio & Notifications"
-            description="Control sound and notification preferences"
-            variant="card"
-          >
-            <SettingsSlider
-              icon="volume-high-outline"
-              iconBackground="#F59E0B"
-              title="Master Volume"
-              subtitle="Adjust overall app volume"
-              value={volume}
-              minimumValue={0}
-              maximumValue={100}
-              step={5}
-              onValueChange={setVolume}
-              formatValue={(value) => `${value}%`}
-            />
+      <SettingsHeader
+        title="Settings"
+        // onNotificationsPress={() => router.push("/notifications")}
+      />
 
-            <SettingsSelector
-              icon="notifications-outline"
-              iconBackground="#8B5CF6"
-              title="Notifications"
-              subtitle="Choose which notifications to receive"
-              options={notificationOptions}
-              selectedValue={notifications}
-              onValueChange={setNotifications}
-              isLast
-            />
-          </SettingsGroup>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      >
+        {/* Profile Section */}
+        <ProfileCard
+          name="Sarah Chen"
+          username="@developer"
+          avatar="https://github.com/github.png"
+          isOnline={true}
+          // onPress={() => router.push("/profile")}
+        />
 
-          {/* Localization */}
-          <SettingsGroup
-            title="Language & Region"
-            description="Set your preferred language and regional settings"
-            variant="card"
-          >
-            <SettingsSelector
-              icon="language-outline"
-              iconBackground="#F59E0B"
-              title="Language"
-              subtitle="Select your preferred language"
-              options={languageOptions}
-              selectedValue={language}
-              onValueChange={setLanguage}
-              isLast
-            />
-          </SettingsGroup>
+        {/* Account Stats */}
+        <StatsCard stats={accountStats} />
 
-          {/* Data & Backup */}
-          <SettingsGroup
-            title="Data & Backup"
-            description="Manage your data and backup preferences"
-            variant="card"
-          >
-            <SettingsSelector
-              icon="cloud-upload-outline"
-              iconBackground="#06B6D4"
-              title="Auto Backup"
-              subtitle="Automatically backup your data"
-              options={backupOptions}
-              selectedValue={autoBackup}
-              onValueChange={setAutoBackup}
-              isLast
-            />
-          </SettingsGroup>
+        {/* Account Settings */}
+        <SettingsSection title="Account">
+          <SettingsItem
+            icon="person-outline"
+            iconBackground={MODERN_DARK.accents.blue.main}
+            title="Profile Information"
+            subtitle="Name, email, bio"
+            // onPress={() => router.push("/profile-edit")}
+          />
+          <SettingsItem
+            icon="key-outline"
+            iconBackground={MODERN_DARK.accents.green.main}
+            title="Password & Security"
+            subtitle="Change password, 2FA"
+            // onPress={() => router.push("/security")}
+          />
+          <SettingsItem
+            icon="card-outline"
+            iconBackground={MODERN_DARK.accents.purple.main}
+            title="Billing & Plans"
+            subtitle="Manage subscription"
+            // onPress={() => router.push("/billing")}
+          />
+          <SettingsItem
+            icon="shield-checkmark-outline"
+            iconBackground={MODERN_DARK.accents.indigo.main}
+            title="Privacy Settings"
+            subtitle="Control your data"
+            // onPress={() => router.push("/privacy")}
+            isLast={true}
+          />
+        </SettingsSection>
 
-          {/* Action Buttons */}
-          <View className="mt-4">
-            <SettingsButton
-              title="Export Data"
-              subtitle="Download your data as a backup file"
-              variant="secondary"
-              icon="download-outline"
-              onPress={handleExportData}
-            />
+        {/* App Preferences */}
+        <SettingsSection title="Preferences">
+          <SettingsItem
+            icon="moon-outline"
+            iconBackground={MODERN_DARK.accents.indigo.main}
+            title="Dark Mode"
+            subtitle="Always use dark theme"
+            hasSwitch={true}
+            switchValue={darkMode}
+            onSwitchChange={setDarkMode}
+            showChevron={false}
+          />
+          <SettingsItem
+            icon="language-outline"
+            iconBackground={MODERN_DARK.accents.blue.main}
+            title="Language"
+            value="English"
+            // onPress={() => router.push("/language")}
+          />
+          <SettingsItem
+            icon="code-outline"
+            iconBackground={MODERN_DARK.accents.green.main}
+            title="Code Editor"
+            subtitle="Theme, font size, shortcuts"
+            // onPress={() => router.push("/editor-settings")}
+          />
+          <SettingsItem
+            icon="git-branch-outline"
+            iconBackground={MODERN_DARK.accents.orange.main}
+            title="Git Configuration"
+            subtitle="Default branch, merge strategy"
+            // onPress={() => router.push("/git-settings")}
+            isLast={true}
+          />
+        </SettingsSection>
 
-            <SettingsButton
-              title="Save All Changes"
-              subtitle="Apply and save all your settings"
-              variant="primary"
-              icon="checkmark-outline"
-              onPress={handleSaveSettings}
-            />
+        {/* Notifications */}
+        <SettingsSection title="Notifications">
+          <SettingsItem
+            icon="notifications-outline"
+            iconBackground={MODERN_DARK.accents.red.main}
+            title="Push Notifications"
+            subtitle="Get notified about activity"
+            hasSwitch={true}
+            switchValue={pushNotifications}
+            onSwitchChange={setPushNotifications}
+            showChevron={false}
+            badge={pushNotifications ? 0 : 3}
+          />
+          <SettingsItem
+            icon="mail-outline"
+            iconBackground={MODERN_DARK.accents.blue.main}
+            title="Email Notifications"
+            subtitle="Receive updates via email"
+            hasSwitch={true}
+            switchValue={emailNotifications}
+            onSwitchChange={setEmailNotifications}
+            showChevron={false}
+          />
+          <SettingsItem
+            icon="time-outline"
+            iconBackground={MODERN_DARK.accents.purple.main}
+            title="Notification Schedule"
+            value="9 AM - 6 PM"
+            // onPress={() => router.push("/notification-schedule")}
+            isLast={true}
+          />
+        </SettingsSection>
 
-            <SettingsButton
-              title="Reset to Defaults"
-              subtitle="Restore all settings to their original values"
-              variant="danger"
-              icon="refresh-outline"
-              onPress={handleResetSettings}
-            />
-          </View>
+        {/* Security */}
+        <SettingsSection title="Security">
+          <SettingsItem
+            icon="finger-print-outline"
+            iconBackground={MODERN_DARK.accents.green.main}
+            title="Biometric Authentication"
+            subtitle="Use Face ID or Touch ID"
+            hasSwitch={true}
+            switchValue={biometricAuth}
+            onSwitchChange={setBiometricAuth}
+            showChevron={false}
+          />
+          <SettingsItem
+            icon="lock-closed-outline"
+            iconBackground={MODERN_DARK.accents.orange.main}
+            title="App Lock"
+            subtitle="Require authentication to open"
+            // onPress={() => router.push("/app-lock")}
+          />
+          <SettingsItem
+            icon="eye-off-outline"
+            iconBackground={MODERN_DARK.accents.indigo.main}
+            title="Active Sessions"
+            subtitle="Manage logged in devices"
+            // onPress={() => router.push("/sessions")}
+            isLast={true}
+          />
+        </SettingsSection>
 
-          <View className="h-8" />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  };
+        {/* Support */}
+        <SettingsSection title="Support">
+          <SettingsItem
+            icon="help-circle-outline"
+            iconBackground={MODERN_DARK.accents.blue.main}
+            title="Help Center"
+            subtitle="Get help and support"
+            // onPress={() => router.push("/help")}
+          />
+          <SettingsItem
+            icon="chatbubble-outline"
+            iconBackground={MODERN_DARK.accents.green.main}
+            title="Contact Support"
+            subtitle="Get in touch with our team"
+            // onPress={() => router.push("/contact")}
+          />
+          <SettingsItem
+            icon="star-outline"
+            iconBackground={MODERN_DARK.accents.orange.main}
+            title="Rate the App"
+            subtitle="Share your feedback"
+            onPress={() => {
+              // Handle app rating
+              console.log("Rate app pressed");
+            }}
+          />
+          <SettingsItem
+            icon="information-circle-outline"
+            iconBackground={MODERN_DARK.accents.purple.main}
+            title="About"
+            value="v2.1.0"
+            // onPress={() => router.push("/about")}
+            isLast={true}
+          />
+        </SettingsSection>
+
+        {/* Danger Zone */}
+        <SettingsSection title="Account Actions">
+          <SettingsItem
+            icon="log-out-outline"
+            iconBackground={MODERN_DARK.status.warning.main}
+            title="Sign Out"
+            subtitle="Sign out of your account"
+            onPress={handleLogout}
+            showChevron={false}
+            isLast={true}
+          />
+        </SettingsSection>
+
+        <DangerButton title="Delete Account" onPress={handleDeleteAccount} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
