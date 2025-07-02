@@ -1,7 +1,7 @@
 // components/settings/SettingsSection.tsx
 import React from "react";
 import { View, Text } from "react-native";
-import { MODERN_DARK } from "../../constants/Colors";
+import { useModernThemeColor } from "../../hooks/useThemeColor";
 
 interface SettingsSectionProps {
   title: string;
@@ -12,17 +12,19 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   title,
   children,
 }) => {
+  const { surface, text } = useModernThemeColor();
+
   return (
     <View className="mb-6">
       <Text
         className="text-sm font-medium px-4 mb-3 uppercase tracking-wider"
-        style={{ color: MODERN_DARK.text.quaternary }}
+        style={{ color: text.quaternary }}
       >
         {title}
       </Text>
       <View
         className="mx-4 rounded-2xl overflow-hidden"
-        style={{ backgroundColor: MODERN_DARK.surface.secondary }}
+        style={{ backgroundColor: surface.secondary }}
       >
         {children}
       </View>

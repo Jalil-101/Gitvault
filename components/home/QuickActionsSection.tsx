@@ -1,11 +1,15 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Platform, ColorValue,ScrollView } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Plus, Search, GitPullRequest, AlertCircle } from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
-import { BottomSheet } from "@/components/BottomSheet";
-import { useBottomSheet } from "@/hooks/useBottomSheet";
-
+import { LinearGradient } from "expo-linear-gradient";
+import { AlertCircle, GitPullRequest, Plus, Search } from "lucide-react-native";
+import React from "react";
+import {
+  ColorValue,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { router } from "expo-router";
 
 const quickActions = [
   {
@@ -13,24 +17,32 @@ const quickActions = [
     icon: Search,
     label: "Search",
     colorKey: "info" as const,
+    onPress: () => router.push("/screens/SearchScreen"),
   },
   {
     id: "prs",
     icon: GitPullRequest,
     label: "PRs",
     colorKey: "warning" as const,
+    onPress: () => router.push("/repository/RepositoryListScreen"),
   },
   {
     id: "issues",
     icon: AlertCircle,
     label: "Issues",
     colorKey: "error" as const,
+    onPress: () => router.push("/screens/IssueScreen"),
   },
 ];
 
 export default function QuickActionsSection() {
   const { colors, gradients, shadows } = useModernTheme();
-   const bottomSheet = useBottomSheet();
+
+  const handleNewRepository = () => {
+    // Handle new repository action
+    console.log("New Repository pressed");
+    // Example: navigation.navigate('NewRepositoryScreen');
+  };
 
   return (
     <View className="px-5 mb-8">
@@ -47,25 +59,24 @@ export default function QuickActionsSection() {
       <View className="gap-4">
         {/* New Repository Button */}
         <TouchableOpacity
+          onPress={handleNewRepository}
           activeOpacity={0.8}
           style={{
             height: 60,
-            borderRadius: 32, // Add border radius to the container (rounded-4xl = 32px)
-            overflow: "hidden", // Ensure gradient respects the border radius
+            borderRadius: 32,
+            overflow: "hidden",
             ...Platform.select({
               ios: {
                 ...shadows.md,
-                shadowRadius: 8, // Optional: enhance shadow
+                shadowRadius: 8,
               },
               android: {
                 elevation: 6,
-                borderRadius: 32, // Android needs explicit border radius for elevation
+                borderRadius: 32,
               },
             }),
           }}
-          onPress={bottomSheet.open}
         >
-          
           <LinearGradient
             colors={
               gradients.primary as [ColorValue, ColorValue, ...ColorValue[]]
@@ -78,10 +89,11 @@ export default function QuickActionsSection() {
               alignItems: "center",
               justifyContent: "center",
               gap: 12,
-              borderRadius: 32, // Explicit border radius for gradient
+              borderRadius: 32,
             }}
           >
             <Plus size={24} color={colors.text.inverse} />
+
             <Text
               className="font-bold text-base"
               style={{ color: colors.text.inverse }}
@@ -90,46 +102,13 @@ export default function QuickActionsSection() {
             </Text>
           </LinearGradient>
         </TouchableOpacity>
-        <BottomSheet
-          isVisible={bottomSheet.isVisible}
-          onClose={bottomSheet.close}
-          title="Bottom Sheet Modal"
-          snapPoints={[0.3, 0.6, 0.9]}
-          enablePanGesture={true}
-        >
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-lg font-semibold mb-4 text-gray-900">
-              Content goes here
-            </Text>
-            <Text className="text-gray-600 mb-4">
-              This is a customizable bottom sheet modal with multiple snap
-              points. You can drag it to resize or tap outside to close.
-            </Text>
-
-            <View className="space-y-3">
-              {Array.from({ length: 10 }, (_, i) => (
-                <View key={i} className="p-4 bg-gray-100 rounded-lg">
-                  <Text className="text-gray-700">List item {i + 1}</Text>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              className="bg-red-500 p-4 rounded-lg mt-6"
-              onPress={bottomSheet.close}
-            >
-              <Text className="text-white text-center font-semibold">
-                Close Bottom Sheet
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </BottomSheet>
 
         {/* Secondary Actions */}
         <View className="flex-row justify-between">
           {quickActions.map((action) => (
             <TouchableOpacity
               key={action.id}
+              onPress={action.onPress}
               activeOpacity={0.7}
               className="flex-1 items-center p-4 rounded-2xl mx-1.5"
               style={{

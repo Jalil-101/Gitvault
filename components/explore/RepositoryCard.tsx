@@ -1,10 +1,11 @@
 // components/explore/RepositoryCard.tsx
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity,} from "react-native";
 import { Star, GitFork, TrendingUp } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
 import { Repository } from "@/types/explore";
+import { Link, useRouter } from "expo-router";
 
 
 interface RepositoryCardProps {
@@ -41,8 +42,14 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
   const accentColor = getAccentColor();
 
   return (
+    <Link href="/screens/FileViewerScreen" asChild>
+ 
+   
+ 
+
     <TouchableOpacity
       onPress={onPress}
+    
       className="rounded-2xl"
       style={{
         backgroundColor: colors.surface.primary,
@@ -200,5 +207,6 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({
         </View>
       </View>
     </TouchableOpacity>
+    </Link>
   );
 };

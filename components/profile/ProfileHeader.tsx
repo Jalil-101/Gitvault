@@ -1,6 +1,6 @@
 // components/profile/ProfileHeader.tsx
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity,Pressable } from "react-native";
 import {
   Bell,
   Settings,
@@ -11,6 +11,8 @@ import {
 import { useModernTheme } from "@/context/ThemeContext";
 import { UserProfile } from "@/types/profile";
 import { Link, useRouter } from "expo-router";
+
+
 
 interface ProfileHeaderProps extends UserProfile {
   onNotificationPress?: () => void;
@@ -29,7 +31,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onSettingsPress,
 }) => {
   const { colors } = useModernTheme();
-
+    
   return (
     <View className="px-6 pt-4 pb-6">
       {/* Top Actions */}
@@ -45,7 +47,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={onSettingsPress}
+          // onPress={onSettingsPress}
           className="p-3 rounded-full"
           style={{ backgroundColor: colors.surface.secondary }}
         >
@@ -134,7 +136,10 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </Text>
             </View>
           )}
+         
+          
         </View>
+        
       </View>
     </View>
   );

@@ -133,14 +133,19 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 // Import your modern theme system
 import { ModernThemeProvider, useModernTheme } from '@/context/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
+
+
 // Import NativeWind for Tailwind CSS support
 import '../global.css'; // Make sure you have this file for NativeWind
+
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -182,13 +187,36 @@ function ThemedLayout() {
   const navigationTheme = createNavigationTheme(isDarkTheme);
 
   return (
+    
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <ThemeProvider value={navigationTheme}>
-      <Stack>
+      
+      {/* Use the Stack component from expo-router */}
+      {/* <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: isDarkTheme ? '#0A0A0F' : '#FFFFFF',
+          },
+        }}
+      >
+        Define your screens here
+        <Stack.Screen name="index" options={{ title: 'Home' }} />
+        <Stack.Screen name="onboarding" options={{ title: 'Onboarding' }} />
+        <Stack.Screen name="auth/signin" options={{ title: 'Sign In' }} />
+        <Stack.Screen name="auth/signup" options={{ title: 'Sign Up' }} />
+      </Stack> */}
+      <Stack
+      screenOptions={{
+        headerShown: false,}}>
+           
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
+      
       <StatusBar style={isDarkTheme ? 'light' : 'dark'} />
     </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -211,8 +239,11 @@ export default function RootLayout() {
   }
 
   return (
+
     <ModernThemeProvider>
+     
       <ThemedLayout />
     </ModernThemeProvider>
+    
   );
 }

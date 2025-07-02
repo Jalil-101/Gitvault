@@ -2,7 +2,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { MODERN_DARK } from "../../constants/Colors";
+import { useModernThemeColor, useAccentColors } from "../../hooks/useThemeColor";
 
 interface SettingsItemProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -22,8 +22,8 @@ interface SettingsItemProps {
 
 export const SettingsItem: React.FC<SettingsItemProps> = ({
   icon,
-  iconColor = MODERN_DARK.text.primary,
-  iconBackground = MODERN_DARK.accents.blue.main,
+  iconColor,
+  iconBackground,
   title,
   subtitle,
   value,
@@ -35,6 +35,13 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({
   showChevron = true,
   badge,
 }) => {
+  const { text, border, status } = useModernThemeColor();
+  const { blue } = useAccentColors();
+
+  // Use provided colors or fall back to theme defaults
+  const finalIconColor = iconColor || text.primary;
+  const finalIconBackground = iconBackground || blue.main;
+
   const handlePress = () => {
     if (hasSwitch && onSwitchChange) {
       onSwitchChange(!switchValue);
@@ -49,32 +56,32 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({
       className="flex-row items-center p-4"
       style={{
         borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: MODERN_DARK.border.primary,
+        borderBottomColor: border.primary,
       }}
     >
       <View
         className="w-8 h-8 rounded-lg items-center justify-center mr-3"
-        style={{ backgroundColor: iconBackground }}
+        style={{ backgroundColor: finalIconBackground }}
       >
-        <Ionicons name={icon} size={18} color={iconColor} />
+        <Ionicons name={icon} size={18} color={finalIconColor} />
       </View>
 
       <View className="flex-1">
         <View className="flex-row items-center">
           <Text
             className="text-base font-medium"
-            style={{ color: MODERN_DARK.text.primary }}
+            style={{ color: text.primary }}
           >
             {title}
           </Text>
           {badge && badge > 0 && (
             <View
               className="ml-2 w-5 h-5 rounded-full items-center justify-center"
-              style={{ backgroundColor: MODERN_DARK.status.error.main }}
+              style={{ backgroundColor: status.error.main }}
             >
               <Text
                 className="text-xs font-bold"
-                style={{ color: MODERN_DARK.text.inverse }}
+                style={{ color: text.inverse }}
               >
                 {badge > 9 ? "9+" : badge}
               </Text>
@@ -84,7 +91,7 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({
         {subtitle && (
           <Text
             className="text-sm mt-1"
-            style={{ color: MODERN_DARK.text.tertiary }}
+            style={{ color: text.tertiary }}
           >
             {subtitle}
           </Text>
@@ -96,17 +103,17 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({
           value={switchValue}
           onValueChange={onSwitchChange}
           trackColor={{
-            false: MODERN_DARK.border.secondary,
-            true: MODERN_DARK.accents.green.main,
+            false: border.secondary,
+            true: status.success.main,
           }}
-          thumbColor={MODERN_DARK.text.inverse}
+          thumbColor={text.inverse}
         />
       ) : (
         <View className="flex-row items-center">
           {value && (
             <Text
               className="text-sm mr-2"
-              style={{ color: MODERN_DARK.text.tertiary }}
+              style={{ color: text.tertiary }}
             >
               {value}
             </Text>
@@ -115,7 +122,7 @@ export const SettingsItem: React.FC<SettingsItemProps> = ({
             <Ionicons
               name="chevron-forward"
               size={16}
-              color={MODERN_DARK.text.quaternary}
+              color={text.quaternary}
             />
           )}
         </View>

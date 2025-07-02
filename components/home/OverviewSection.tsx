@@ -5,6 +5,7 @@ import { FileText, GitCommit, AlertCircle, Star } from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
 import { CardColorType } from "@/constants/Colors";
 
+
 const { width } = Dimensions.get("window");
 
 import { LucideProps } from "lucide-react-native"; // Ensure to import LucideProps
@@ -50,6 +51,8 @@ const statsData: StatsData[] = [
 
 export default function OverviewSection() {
   const { colors } = useModernTheme();
+  
+
 
   return (
     <View className="px-5 mb-8">
@@ -71,6 +74,7 @@ export default function OverviewSection() {
             value={stat.value}
             label={stat.label}
             colorType={stat.colorType}
+            
             style={{
               width: (width - 52) / 2,
               marginBottom: 12,
