@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import ActivityItem from "./ActivityItem";
 import { useModernTheme } from "@/context/ThemeContext";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import ActivityItem from "./ActivityItem";
 
 const activityData = [
   {

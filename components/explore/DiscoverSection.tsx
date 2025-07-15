@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
 import { RepositoryCard } from "./RepositoryCard";
 import { mockDiscoverRepos } from "@/data/mockData";
+import { router } from "expo-router";
 interface DiscoverSectionProps {
   onRepositoryPress?: (repository: any) => void;
 }
@@ -76,6 +77,7 @@ export const DiscoverSection: React.FC<DiscoverSectionProps> = ({
             backgroundColor: colors.accents.blue.main,
             ...shadows.sm,
           }}
+          onPress={() => router.push("/screens/ExploreRepositoryListingScreen")}
         >
           <LinearGradient
             colors={[colors.accents.blue.main, colors.accents.blue.light]}

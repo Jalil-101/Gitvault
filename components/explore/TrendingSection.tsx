@@ -6,10 +6,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useModernTheme } from "@/context/ThemeContext";
 import { RepositoryCard } from "@/components/explore/RepositoryCard";
 import { mockTrendingRepos } from "@/data/mockData";
+import { useRouter } from "expo-router";
 interface TrendingSectionProps {
   onRepositoryPress?: (repository: any) => void;
 }
-
+ const router = useRouter();
 
 export const TrendingSection: React.FC<TrendingSectionProps> = ({
   onRepositoryPress,
@@ -76,6 +77,9 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
             backgroundColor: colors.accents.green.main,
             ...shadows.sm,
           }}
+          onPress={() =>
+            router.push("/screens/ExploreRepositoryListingScreen?type=trending")
+          }
         >
           <LinearGradient
             colors={[colors.accents.green.main, colors.accents.green.light]}

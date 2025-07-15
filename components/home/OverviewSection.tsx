@@ -1,21 +1,34 @@
 import React from "react";
 import { View, Text, Dimensions } from "react-native";
+import { useRouter } from "expo-router";
 import StatsCard from "./StatsCard";
-import { FileText, GitCommit, AlertCircle, Star } from "lucide-react-native";
+import {
+  FileText,
+  GitCommit,
+  AlertCircle,
+  Star,
+  ClipboardCheck,
+} from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
 import { CardColorType } from "@/constants/Colors";
 
-
 const { width } = Dimensions.get("window");
 
-import { LucideProps } from "lucide-react-native"; // Ensure to import LucideProps
+import { LucideIcon } from "lucide-react-native";
+
+type ValidRoutes =
+  | "/repository/RepositoryListScreen"
+  | "/commits"
+  | "/screens/Todo"
+  | "/stars";
 
 interface StatsData {
   id: string;
-  icon: React.ForwardRefExoticComponent<LucideProps>; // Use LucideProps for icon type
+  icon: LucideIcon;
   value: string;
   label: string;
   colorType: CardColorType;
+  route: ValidRoutes; // Change to ValidRoutes to match the expected type
 }
 
 const statsData: StatsData[] = [
@@ -25,6 +38,7 @@ const statsData: StatsData[] = [
     value: "47",
     label: "Repositories",
     colorType: "repositories",
+    route: "/repository/RepositoryListScreen", // Navigate to repositories screen
   },
   {
     id: "commits",
@@ -32,13 +46,15 @@ const statsData: StatsData[] = [
     value: "1.2k",
     label: "Commits",
     colorType: "commits",
+    route: "/commits", // Navigate to commits screen
   },
   {
     id: "issues",
-    icon: AlertCircle,
+    icon: ClipboardCheck,
     value: "23",
-    label: "Issues",
+    label: "Tasks",
     colorType: "issues",
+    route: "/screens/Todo", // Navigate to tasks screen
   },
   {
     id: "stars",
@@ -46,13 +62,23 @@ const statsData: StatsData[] = [
     value: "456",
     label: "Stars",
     colorType: "stars",
+    route: "/stars", // Navigate to stars screen
   },
 ];
 
 export default function OverviewSection() {
   const { colors } = useModernTheme();
-  
+  const router = useRouter();
 
+  type ValidRoutes =
+    | "/repository/RepositoryListScreen"
+    | "/commits"
+    | "/screens/Todo"
+    | "/stars";
+  
+  const handleStatPress = (route: ValidRoutes) => {
+      router.push(route as any); // Cast to 'any' to bypass type checking
+  };
 
   return (
     <View className="px-5 mb-8">
@@ -74,7 +100,7 @@ export default function OverviewSection() {
             value={stat.value}
             label={stat.label}
             colorType={stat.colorType}
-            
+            onPress={() => handleStatPress(stat.route)}
             style={{
               width: (width - 52) / 2,
               marginBottom: 12,

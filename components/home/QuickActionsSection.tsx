@@ -1,6 +1,6 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertCircle, GitPullRequest, Plus, Search } from "lucide-react-native";
+import { AlertCircle, ClipboardCheck, GitPullRequest, Plus, Search } from "lucide-react-native";
 import React from "react";
 import {
   ColorValue,
@@ -27,11 +27,11 @@ const quickActions = [
     onPress: () => router.push("/repository/RepositoryListScreen"),
   },
   {
-    id: "issues",
-    icon: AlertCircle,
-    label: "Issues",
+    id: "tasks",
+    icon: ClipboardCheck,
+    label: "Tasks",
     colorKey: "error" as const,
-    onPress: () => router.push("/screens/IssueScreen"),
+    onPress: () => router.push("/screens/Todo"),
   },
 ];
 
