@@ -4,7 +4,9 @@ import { Stack } from "expo-router";
 export default function ScreensLayout() {
   return (
     <Stack>
-     
+      
+      
+
       <Stack.Screen name="SearchScreen" options={{ headerShown: false }} />
       <Stack.Screen name="SettingsScreen" options={{ headerShown: false }} />
 

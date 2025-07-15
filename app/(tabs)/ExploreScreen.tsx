@@ -23,6 +23,8 @@ const ExploreScreen: React.FC<ExploreScreenProps> = ({
 }) => {
   const { colors, isDarkTheme, shadows,gradients } = useModernTheme();
 
+
+  
   return (
     <SafeAreaView
       className="flex-1"

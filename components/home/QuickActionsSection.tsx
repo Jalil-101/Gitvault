@@ -23,14 +23,14 @@ const quickActions = [
     id: "prs",
     icon: GitPullRequest,
     label: "PRs",
-    colorKey: "warning" as const,
+    colorKey: "error" as const,
     onPress: () => router.push("/repository/RepositoryListScreen"),
   },
   {
     id: "tasks",
     icon: ClipboardCheck,
     label: "Tasks",
-    colorKey: "error" as const,
+    colorKey: "warning" as const,
     onPress: () => router.push("/screens/Todo"),
   },
 ];
