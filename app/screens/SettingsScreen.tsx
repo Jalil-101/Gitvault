@@ -144,7 +144,7 @@ export default function SettingsScreen() {
             iconBackground={accentColors.indigo.main}
             title="Privacy Settings"
             subtitle="Control your data"
-            // onPress={() => router.push("/privacy")}
+            onPress={() => router.push("./PrivacySettings")}
             isLast={true}
           />
         </SettingsSection>
