@@ -1,0 +1,55 @@
+// data/commits.ts
+import { Commit } from "@/types/commits";
+
+export const dummyCommits: Commit[] = [
+  {
+    id: "1",
+    message: "Fix: Resolve authentication bug in login flow",
+    author: "johndoe",
+    avatar: "👨‍💻",
+    date: "2 hours ago",
+    sha: "a1b2c3d",
+    additions: 15,
+    deletions: 3,
+  },
+  {
+    id: "2",
+    message: "Feature: Add dark mode support to settings page",
+    author: "janedeveloper",
+    avatar: "👩‍💻",
+    date: "5 hours ago",
+    sha: "e4f5g6h",
+    additions: 42,
+    deletions: 8,
+  },
+  {
+    id: "3",
+    message: "Update README.md with installation instructions",
+    author: "developer",
+    avatar: "🧑‍💻",
+    date: "1 day ago",
+    sha: "i7j8k9l",
+    additions: 23,
+    deletions: 2,
+  },
+  {
+    id: "4",
+    message: "Refactor: Improve performance of data fetching",
+    author: "codemaster",
+    avatar: "👨‍🔬",
+    date: "2 days ago",
+    sha: "m0n1o2p",
+    additions: 8,
+    deletions: 12,
+  },
+  {
+    id: "5",
+    message: "Fix: Handle edge case in user validation",
+    author: "bugfixer",
+    avatar: "🐛",
+    date: "3 days ago",
+    sha: "q3r4s5t",
+    additions: 5,
+    deletions: 1,
+  },
+];

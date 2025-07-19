@@ -310,6 +310,17 @@ export const GRADIENTS = {
     glass: ["rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.05)"] as const,
   },
 } as const;
+// In your Colors.ts, you could add:
+export const REPOSITORY_VARIANTS = {
+  trending: {
+    accent: "green",
+    gradient: "green",
+  },
+  discover: {
+    accent: "blue", 
+    gradient: "primary",
+  },
+} as const;
 
 // Main color export
 export const ModernColors = {

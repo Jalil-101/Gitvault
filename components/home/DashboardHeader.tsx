@@ -24,7 +24,7 @@ export default function DashboardHeader() {
         <View className="flex-row items-center">
           <Image
             source={{
-              uri: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
+              uri: "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=",
             }}
             className="w-10 h-10 rounded-full mr-3"
           />

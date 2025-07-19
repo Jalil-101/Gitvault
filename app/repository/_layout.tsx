@@ -16,6 +16,14 @@ export default function RepositoryLayout() {
         name="RepositoryListScreen"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="ExploreRepositoryListingScreen"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ExploreRepositoryDetailScreen"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }

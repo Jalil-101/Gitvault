@@ -18,9 +18,9 @@ import { LucideIcon } from "lucide-react-native";
 
 type ValidRoutes =
   | "/repository/RepositoryListScreen"
-  | "/commits"
+  | "/screens/CommitsScreen"
   | "/screens/Todo"
-  | "/stars";
+  | "/screens/StarsScreen";
 
 interface StatsData {
   id: string;
@@ -46,7 +46,7 @@ const statsData: StatsData[] = [
     value: "1.2k",
     label: "Commits",
     colorType: "commits",
-    route: "/commits", // Navigate to commits screen
+    route: "/screens/CommitsScreen", // Navigate to commits screen
   },
   {
     id: "issues",
@@ -62,7 +62,7 @@ const statsData: StatsData[] = [
     value: "456",
     label: "Stars",
     colorType: "stars",
-    route: "/stars", // Navigate to stars screen
+    route: "/screens/StarsScreen", // Navigate to stars screen
   },
 ];
 
@@ -72,9 +72,9 @@ export default function OverviewSection() {
 
   type ValidRoutes =
     | "/repository/RepositoryListScreen"
-    | "/commits"
+    | "/screens/CommitsScreen"
     | "/screens/Todo"
-    | "/stars";
+    | "/screens/StarsScreen";
   
   const handleStatPress = (route: ValidRoutes) => {
       router.push(route as any); // Cast to 'any' to bypass type checking

@@ -77,8 +77,11 @@ export const TrendingSection: React.FC<TrendingSectionProps> = ({
             backgroundColor: colors.accents.green.main,
             ...shadows.sm,
           }}
+          // Navigate to trending repositories
           onPress={() =>
-            router.push("/screens/ExploreRepositoryListingScreen?type=trending")
+            router.push(
+              "/repository/ExploreRepositoryListingScreen?type=trending"
+            )
           }
         >
           <LinearGradient

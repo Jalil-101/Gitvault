@@ -77,7 +77,11 @@ export const DiscoverSection: React.FC<DiscoverSectionProps> = ({
             backgroundColor: colors.accents.blue.main,
             ...shadows.sm,
           }}
-          onPress={() => router.push("/screens/ExploreRepositoryListingScreen")}
+          onPress={() =>
+            router.push(
+              "/repository/ExploreRepositoryListingScreen?type=discover"
+            )
+          }
         >
           <LinearGradient
             colors={[colors.accents.blue.main, colors.accents.blue.light]}

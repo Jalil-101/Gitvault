@@ -1,0 +1,61 @@
+// data/dummyData.ts
+import { Repository } from "../types/starRepository";
+
+export const dummyStarredRepos: Repository[] = [
+  {
+    id: "1",
+    name: "react-native",
+    owner: "facebook",
+    description: "A framework for building native applications using React",
+    language: "JavaScript",
+    languageColor: "#f1e05a",
+    stars: 118000,
+    forks: 24100,
+    updatedAt: "2 hours ago",
+  },
+  {
+    id: "2",
+    name: "expo",
+    owner: "expo",
+    description:
+      "An open-source platform for making universal native apps with React",
+    language: "TypeScript",
+    languageColor: "#2b7489",
+    stars: 22800,
+    forks: 4900,
+    updatedAt: "5 hours ago",
+  },
+  {
+    id: "3",
+    name: "tailwindcss",
+    owner: "tailwindlabs",
+    description: "A utility-first CSS framework for rapid UI development",
+    language: "CSS",
+    languageColor: "#563d7c",
+    stars: 82100,
+    forks: 4200,
+    updatedAt: "1 day ago",
+  },
+  {
+    id: "4",
+    name: "lucide",
+    owner: "lucide-icons",
+    description: "Beautiful & consistent icon toolkit made by the community",
+    language: "JavaScript",
+    languageColor: "#f1e05a",
+    stars: 10500,
+    forks: 450,
+    updatedAt: "2 days ago",
+  },
+  {
+    id: "5",
+    name: "prisma",
+    owner: "prisma",
+    description: "Next-generation Node.js and TypeScript ORM",
+    language: "TypeScript",
+    languageColor: "#2b7489",
+    stars: 39200,
+    forks: 1500,
+    updatedAt: "3 days ago",
+  },
+];

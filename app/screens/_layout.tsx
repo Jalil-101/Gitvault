@@ -12,6 +12,8 @@ export default function ScreensLayout() {
       />
       <Stack.Screen name="Todo" options={{ headerShown: false }} />\
       <Stack.Screen name="PrivacySettings" options={{ headerShown: false }} />
+      <Stack.Screen name="CommitsScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="StarsScreen" options={{ headerShown: false }} />
     </Stack>
   );
 }
