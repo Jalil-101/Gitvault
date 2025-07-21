@@ -2,9 +2,9 @@
 import { useModernTheme } from '@/context/ThemeContext';
 import React from 'react';
 import { Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Plan } from '../../types/billing';
 import { BillingToggle } from './BillingToggle';
 import { PlanCard } from './PlanCard';
-import { Plan } from './Types';
 
 interface PlanSelectionCardProps {
   plans: Plan[];

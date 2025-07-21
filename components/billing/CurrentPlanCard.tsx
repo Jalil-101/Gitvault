@@ -13,7 +13,7 @@ interface CurrentPlanCardProps {
 export const CurrentPlanCard: React.FC<CurrentPlanCardProps> = ({ 
   planName = 'Pro', 
   billingCycle = 'monthly', 
-  nextBilling = 'Jan 25, 2025' 
+  nextBilling = 'Aug 25, 2025' 
 }) => {
   const { colors, getShadow } = useModernTheme();
 

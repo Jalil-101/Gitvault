@@ -130,7 +130,7 @@ export default function SettingsScreen() {
             iconBackground={accentColors.green.main}
             title="Password & Security"
             subtitle="Change password, 2FA"
-            // onPress={() => router.push("/security")}
+            onPress={() => router.push("./PasswordSecurityScreen")}
           />
           <SettingsItem
             icon="card-outline"

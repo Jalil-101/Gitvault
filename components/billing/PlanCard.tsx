@@ -3,7 +3,7 @@ import { useModernTheme } from '@/context/ThemeContext';
 import { Check } from 'lucide-react-native';
 import React from 'react';
 import { Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Plan } from './Types';
+import { Plan } from '../../types/billing';
 
 interface PlanCardProps {
   plan: Plan;

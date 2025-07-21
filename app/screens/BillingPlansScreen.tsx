@@ -3,9 +3,9 @@ import { ActionButtons } from '@/components/billing/ActionButtons';
 import { BillingHeader } from '@/components/billing/BillingHeader';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
 import { PlanSelectionCard } from '@/components/billing/PlanSelectionCard';
-import { Plan, Usage } from '@/components/billing/Types';
 import { UsageOverviewCard } from '@/components/billing/UsageOverviewCard';
 import { useModernTheme } from '@/context/ThemeContext';
+import { Plan, Usage } from '@/types/billing';
 import React, { useState } from 'react';
 import { ScrollView, View, ViewStyle } from 'react-native';
 

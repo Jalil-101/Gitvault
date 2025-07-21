@@ -2,7 +2,7 @@
 import { useModernTheme } from '@/context/ThemeContext';
 import React from 'react';
 import { Text, TextStyle, View, ViewStyle } from 'react-native';
-import { Usage } from './Types';
+import { Usage } from '../../types/billing';
 import { UsageProgressBar } from './UsageProgressBar';
 
 interface UsageOverviewCardProps {
