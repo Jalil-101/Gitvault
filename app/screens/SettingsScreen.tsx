@@ -6,7 +6,7 @@ import { SettingsItem } from "@/components/settings/SettingsItem";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { StatsCard } from "@/components/settings/StatsCard";
 import { useThemeToggle } from "@/hooks/useColorScheme";
-import { useModernThemeColor, useAccentColors, useStatusColors } from "@/hooks/useThemeColor";
+import { useAccentColors, useModernThemeColor, useStatusColors } from "@/hooks/useThemeColor";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView, StatusBar } from "react-native";
@@ -137,7 +137,7 @@ export default function SettingsScreen() {
             iconBackground={accentColors.purple.main}
             title="Billing & Plans"
             subtitle="Manage subscription"
-            // onPress={() => router.push("/billing")}
+            onPress={() => router.push("./BillingPlansScreen")}
           />
           <SettingsItem
             icon="shield-checkmark-outline"

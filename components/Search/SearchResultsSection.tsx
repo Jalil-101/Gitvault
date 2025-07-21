@@ -1,10 +1,10 @@
 // components/SearchResultsSection.tsx
-import React from "react";
-import { View } from "react-native";
+import { SearchResultItem } from "@/components/Search/SearchResultItem";
 import { ThemedText } from "@/components/ThemedText";
-import { SearchResultItem } from "@/components/search/SearchResultItem";
 import { useModernTheme } from "@/context/ThemeContext";
 import { SearchResult } from "@/types/search";
+import React from "react";
+import { View } from "react-native";
 
 interface SearchResultsSectionProps {
   filteredResults: SearchResult[];

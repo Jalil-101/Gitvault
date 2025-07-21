@@ -1,15 +1,14 @@
 // components/SearchContent.tsx
-import React from "react";
-import { View, ScrollView } from "react-native";
+import { EmptySearchState } from "@/components/Search/EmptySearchState";
+import { RecentSearches } from "@/components/Search/RecentSearches";
+import { SearchSuggestion, SearchSuggestions } from "@/components/Search/SearchSuggestions";
 import { ThemedText } from "@/components/ThemedText";
-import { RecentSearches } from "@/components/search/RecentSearches";
-import { SearchSuggestions } from "@/components/search/SearchSuggestions";
-import { EmptySearchState } from "@/components/search/EmptySearchState";
-import SearchResultsSection from "./SearchResultsSection";
-import { useModernTheme } from "@/context/ThemeContext";
-import { SearchResult, RecentSearch } from "@/types/search";
-import { SearchSuggestion } from "@/components/search/SearchSuggestions"; // Ensure this matches the type used in SearchSuggestions
 import { SEARCH_SUGGESTIONS } from "@/constants/search";
+import { useModernTheme } from "@/context/ThemeContext";
+import { RecentSearch, SearchResult } from "@/types/search";
+import React from "react";
+import { ScrollView, View } from "react-native";
+import SearchResultsSection from "./SearchResultsSection";
 
 interface SearchContentProps {
   isLoading: boolean;

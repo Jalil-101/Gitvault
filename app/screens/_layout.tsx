@@ -6,12 +6,14 @@ export default function ScreensLayout() {
     <Stack>
       <Stack.Screen name="SearchScreen" options={{ headerShown: false }} />
       <Stack.Screen name="SettingsScreen" options={{ headerShown: false }} />
+      
       <Stack.Screen
         name="ExploreRepositoryLisitingScreen"
         options={{ headerShown: false }}
       />
       <Stack.Screen name="Todo" options={{ headerShown: false }} />\
       <Stack.Screen name="PrivacySettings" options={{ headerShown: false }} />
+      <Stack.Screen name="BillingPlansScreen" options={{ headerShown: false }} />
       <Stack.Screen name="CommitsScreen" options={{ headerShown: false }} />
       <Stack.Screen name="StarsScreen" options={{ headerShown: false }} />
     </Stack>

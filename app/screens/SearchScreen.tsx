@@ -1,22 +1,21 @@
 // Main SearchScreen component (refactored)
-import React, { useEffect } from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React, { useEffect } from 'react';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SearchHeader } from '@/components/search/SearchHeader';
-import { SearchInput } from '@/components/search/SearchInput';
-import { SearchFilters } from '@/components/search/SearchFilters';
-import SearchContent from '@/components/search/SearchContent';
-import SearchResultsSection from '@/components/search/SearchResultsSection';
+import SearchContent from '@/components/Search/SearchContent';
+import { SearchFilters } from '@/components/Search/SearchFilters';
+import { SearchHeader } from '@/components/Search/SearchHeader';
+import { SearchInput } from '@/components/Search/SearchInput';
 
+import { SearchSuggestion } from '@/components/Search/SearchSuggestions';
 import { useModernTheme } from '@/context/ThemeContext';
-import { useSearchState } from '@/hooks/useSearchState';
 import { useSearchActions } from '@/hooks/useSearchActions';
-import { useSearchFiltering } from '@/hooks/useSearchFiltering';
 import { useSearchDisplayState } from '@/hooks/useSearchDisplayState';
-import { SearchSuggestion } from '@/components/search/SearchSuggestions';
+import { useSearchFiltering } from '@/hooks/useSearchFiltering';
+import { useSearchState } from '@/hooks/useSearchState';
 
 export default function SearchScreen() {
   const router = useRouter();
