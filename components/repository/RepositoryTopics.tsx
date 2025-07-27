@@ -1,14 +1,16 @@
 // components/repository/RepositoryTopics.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
-import { useModernTheme } from '@/context/ThemeContext';
+import { useModernTheme } from "@/context/ThemeContext";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import type { Repository } from "../../types/repository";
 
 interface RepositoryTopicsProps {
   repository: Repository;
 }
 
-export const RepositoryTopics: React.FC<RepositoryTopicsProps> = ({ repository }) => {
+export const RepositoryTopics: React.FC<RepositoryTopicsProps> = ({
+  repository,
+}) => {
   const { colors } = useModernTheme();
 
   if (!repository.topics || repository.topics.length === 0) {
@@ -23,13 +25,13 @@ export const RepositoryTopics: React.FC<RepositoryTopicsProps> = ({ repository }
     },
     title: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text.primary,
       marginBottom: 12,
     },
     topicsContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
+      flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
     },
     topicBadge: {
@@ -43,7 +45,7 @@ export const RepositoryTopics: React.FC<RepositoryTopicsProps> = ({ repository }
     topicText: {
       fontSize: 12,
       color: colors.status.info.text,
-      fontWeight: '500',
+      fontWeight: "500",
     },
   });
 

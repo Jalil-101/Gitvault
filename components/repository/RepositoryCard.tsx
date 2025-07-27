@@ -1,29 +1,40 @@
 // components/repository/RepositoryCard.tsx
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Repository } from '../../types/repository';
-import { RepositoryHeader } from './RepositoryHeader';
-import { RepositoryStats } from './RepositoryStats';
-import { formatDate } from '../../utils/formatters';
-import { useModernTheme } from '@/context/ThemeContext';
-
+import { useRouter } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+// import { Repository } from '../../types/repository';
+import { useModernTheme } from "@/context/ThemeContext";
+import { GitHubRepository as Repository } from "@/types/repository";
+import { formatDate } from "../../utils/formatters";
+import { RepositoryHeader } from "./RepositoryHeader";
+import { RepositoryStats } from "./RepositoryStats";
 interface RepositoryCardProps {
   repository: Repository;
+  onPress?: () => void;
+  onOptionsPress?: () => void;
 }
 
-export const RepositoryCard: React.FC<RepositoryCardProps> = ({ repository }) => {
+export const RepositoryCard: React.FC<RepositoryCardProps> = ({
+  repository,
+  onPress,
+  onOptionsPress,
+}) => {
   const router = useRouter();
   const { colors, shadows } = useModernTheme();
 
   const handlePress = () => {
-    router.push({
-      pathname: '../repository/[id]',
-      params: {
-        id: repository.id.toString(),
-        repositoryData: JSON.stringify(repository)
-      }
-    });
+    if (onPress) {
+      onPress();
+    } else {
+      // Default navigation for other screens
+      router.push({
+        pathname: "../repository/[id]",
+        params: {
+          id: repository.id.toString(),
+          repositoryData: JSON.stringify(repository),
+        },
+      });
+    }
   };
 
   const cardStyles = StyleSheet.create({
@@ -44,9 +55,9 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({ repository }) =>
       marginBottom: 12,
     },
     footer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     },
     updatedText: {
       fontSize: 12,
@@ -57,13 +68,13 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({ repository }) =>
   return (
     <TouchableOpacity style={cardStyles.card} onPress={handlePress}>
       <RepositoryHeader repository={repository} />
-      
+
       {repository.description && (
         <Text style={cardStyles.description} numberOfLines={2}>
           {repository.description}
         </Text>
       )}
-      
+
       <View style={cardStyles.footer}>
         <RepositoryStats repository={repository} />
         <Text style={cardStyles.updatedText}>

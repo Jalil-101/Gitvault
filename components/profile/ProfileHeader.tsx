@@ -1,18 +1,17 @@
 // components/profile/ProfileHeader.tsx
-import React from "react";
-import { View, Text, Image, TouchableOpacity,Pressable } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/store/authStore";
+import { UserProfile } from "@/types/profile";
+import { Link } from "expo-router";
 import {
   Bell,
-  Settings,
   Building,
-  MapPin,
   Calendar,
+  MapPin,
+  Settings,
 } from "lucide-react-native";
-import { useModernTheme } from "@/context/ThemeContext";
-import { UserProfile } from "@/types/profile";
-import { Link, useRouter } from "expo-router";
-
-
+import React from "react";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ProfileHeaderProps extends UserProfile {
   onNotificationPress?: () => void;
@@ -31,7 +30,17 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onSettingsPress,
 }) => {
   const { colors } = useModernTheme();
-    
+  const authUser = useAuthStore((state) => state.user);
+
+  // Compose name: prefer authUser first/last, fallback to displayName
+  const fullName =
+    authUser && (authUser.firstName || authUser.lastName)
+      ? `${authUser.firstName || ""}${
+          authUser.lastName ? ` ${authUser.lastName}` : ""
+        }`.trim()
+      : "";
+  const email = authUser?.email || "";
+
   return (
     <View className="px-6 pt-4 pb-6">
       {/* Top Actions */}
@@ -76,19 +85,30 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </View>
         </View>
 
-        <Text
-          className="text-2xl font-bold mb-1"
-          style={{ color: colors.text.primary }}
-        >
-          {displayName}
-        </Text>
-
-        <Text
-          className="text-base mb-4"
-          style={{ color: colors.text.secondary }}
-        >
-          @{userName}
-        </Text>
+        {fullName !== "" && (
+          <Text
+            className="text-2xl font-bold mb-1"
+            style={{ color: colors.text.primary }}
+          >
+            {fullName}
+          </Text>
+        )}
+        {email !== "" && (
+          <Text
+            className="text-base mb-1"
+            style={{ color: colors.text.secondary }}
+          >
+            {email}
+          </Text>
+        )}
+        {userName && (
+          <Text
+            className="text-base mb-4"
+            style={{ color: colors.text.secondary }}
+          >
+            @{userName}
+          </Text>
+        )}
 
         {bio && (
           <Text
@@ -136,10 +156,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               </Text>
             </View>
           )}
-         
-          
         </View>
-        
       </View>
     </View>
   );

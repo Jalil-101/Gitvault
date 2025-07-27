@@ -16,6 +16,7 @@ import { RepositoryCard } from '@/components/repository/RepositoryCard';
 import { Button } from '@/components/ui/Button';
 import { useModernTheme } from '@/context/ThemeContext';
 import { useThemeClasses } from '@/hooks/useThemeColor';
+import { GitHubRepository } from "@/types/repository";
 
 interface GitHubUser {
   login: string;
@@ -23,11 +24,13 @@ interface GitHubUser {
 }
 
 export default function RepositoryListScreen() {
-  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredRepositories, setFilteredRepositories] = useState<Repository[]>([]);
+const [filteredRepositories, setFilteredRepositories] = useState<
+  GitHubRepository[]
+>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Theme hooks
@@ -56,11 +59,11 @@ export default function RepositoryListScreen() {
       const data = await response.json();
       
       // Transform GitHub API response to our Repository interface
-      const transformedRepos: Repository[] = data.map((repo: any) => ({
+      const transformedRepos: GitHubRepository[] = data.map((repo: any) => ({
         id: repo.id,
         name: repo.name,
         full_name: repo.full_name,
-        description: repo.description || '',
+        description: repo.description || "",
         private: repo.private,
         owner: {
           login: repo.owner.login,
@@ -69,7 +72,7 @@ export default function RepositoryListScreen() {
         html_url: repo.html_url,
         clone_url: repo.clone_url,
         ssh_url: repo.ssh_url,
-        language: repo.language || 'Unknown',
+        language: repo.language || "Unknown",
         stargazers_count: repo.stargazers_count,
         watchers_count: repo.watchers_count,
         forks_count: repo.forks_count,
@@ -80,10 +83,12 @@ export default function RepositoryListScreen() {
         pushed_at: repo.pushed_at,
         size: repo.size,
         topics: repo.topics || [],
-        license: repo.license ? {
-          name: repo.license.name,
-          spdx_id: repo.license.spdx_id,
-        } : undefined,
+        license: repo.license
+          ? {
+              name: repo.license.name,
+              spdx_id: repo.license.spdx_id,
+            }
+          : undefined,
       }));
 
       setRepositories(transformedRepos);
@@ -146,9 +151,9 @@ export default function RepositoryListScreen() {
     initializeData();
   }, []);
 
-  const renderRepository = ({ item }: { item: Repository }) => (
-    <RepositoryCard repository={item} />
-  );
+ const renderRepository = ({ item }: { item: GitHubRepository }) => (
+   <RepositoryCard repository={item} />
+ );
 
   const renderHeader = () => (
     <View 

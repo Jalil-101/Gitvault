@@ -13,7 +13,7 @@ import { CommitItem } from '@/components/commits/CommitItem';
 import { dummyCommits } from '@/data/commits';
 import { Commit } from '@/types/commits';
 
-export const CommitsScreen = ({ navigation }: any) => {
+ const CommitsScreen = ({ navigation }: any) => {
   const { colors, isDarkTheme } = useModernTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState('main');
@@ -74,3 +74,4 @@ export const CommitsScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
+export default CommitsScreen;

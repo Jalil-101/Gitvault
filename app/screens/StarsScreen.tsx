@@ -9,8 +9,9 @@ import { StarsHeader } from "@/components/stars/StarsHeader";
 import { SearchBar } from "@/components/stars/SearchBar";
 import { RepositoryList } from "@/components/stars/RepositoryList";
 import { Repository } from "@/types/starRepository";
+import { router } from "expo-router";
 
-export const StarsScreen = ({ navigation }: any) => {
+ const StarsScreen = ({ navigation }: any) => {
   const { colors, isDarkTheme } = useModernTheme();
   const themeClasses = useThemeClasses();
 
@@ -44,7 +45,7 @@ export const StarsScreen = ({ navigation }: any) => {
       />
 
       <StarsHeader
-        onBackPress={() => navigation.goBack()}
+        onBackPress={() => router.back()}
         repositoryCount={dummyStarredRepos.length}
       />
 
@@ -60,3 +61,4 @@ export const StarsScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
+export default StarsScreen; 

@@ -14,9 +14,15 @@ import { useModernTheme } from "@/context/ThemeContext";
 import DashboardHeader from "@/components/home/DashboardHeader";
 import OverviewSection from "@/components/home/OverviewSection";
 import QuickActionsSection from "@/components/home/QuickActionsSection";
-import RecentActivitySection from "@/components/home/RecentActivitySection";
+
 import { RepositoryCard } from "@/components/repository/RepositoryCard";
-import { Repository } from '@/types/repository';
+
+import NotificationTestButton from "@/components/notifications/NotificationTestButton";
+
+import {
+  GitHubRepository as Repository,
+ 
+} from "@/types/repository";
 
 
 
@@ -67,7 +73,9 @@ export default function DashboardScreen() {
     <View className="flex-1">
       {/* Animated Background using theme gradients */}
       <LinearGradient
-        colors={gradients.background as [ColorValue, ColorValue, ...ColorValue[]]} // Cast to the required type
+        colors={
+          gradients.background as [ColorValue, ColorValue, ...ColorValue[]]
+        } // Cast to the required type
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -95,11 +103,10 @@ export default function DashboardScreen() {
           <DashboardHeader />
           <OverviewSection />
           <QuickActionsSection />
-          <RecentActivitySection />
-
-         
+          
+          <NotificationTestButton />
         </ScrollView>
-         {/* <FlatList
+        {/* <FlatList
         data={repositories}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
@@ -107,9 +114,6 @@ export default function DashboardScreen() {
         )}
         className="pt-2"
       /> */}
-        
-
-      
       </SafeAreaView>
     </View>
   );

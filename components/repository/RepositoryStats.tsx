@@ -1,11 +1,14 @@
 // components/repository/RepositoryStats.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
+// import { Repository } from '../../types/repository';
 import { LanguageDot } from '../ui/LanguageDot';
 import { formatNumber } from '../../utils/formatters';
 import { useModernTheme } from '@/context/ThemeContext';
-
+import {
+  GitHubRepository as Repository,
+  ExistingScreenRepository,
+} from "@/types/repository";
 interface RepositoryStatsProps {
   repository: Repository;
 }

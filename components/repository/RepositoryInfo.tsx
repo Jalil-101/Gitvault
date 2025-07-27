@@ -1,9 +1,10 @@
 // components/repository/RepositoryInfo.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
-import { formatFileSize } from '../../utils/formatters';
-import { useModernTheme } from '@/context/ThemeContext';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+// import { Repository } from '../../types/repository';
+import { useModernTheme } from "@/context/ThemeContext";
+import type { Repository } from "@/types/repository";
+import { formatFileSize } from "../../utils/formatters";
 
 interface RepositoryInfoProps {
   repository: Repository;
@@ -19,20 +20,20 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
 
   const rowStyles = StyleSheet.create({
     container: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingVertical: 4,
     },
     label: {
       fontSize: 14,
       color: colors.text.secondary,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     value: {
       fontSize: 14,
       color: colors.text.primary,
-      textAlign: 'right',
+      textAlign: "right",
       flex: 1,
       marginLeft: 16,
     },
@@ -46,7 +47,9 @@ const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => {
   );
 };
 
-export const RepositoryInfo: React.FC<RepositoryInfoProps> = ({ repository }) => {
+export const RepositoryInfo: React.FC<RepositoryInfoProps> = ({
+  repository,
+}) => {
   const { colors } = useModernTheme();
 
   const infoStyles = StyleSheet.create({
@@ -57,7 +60,7 @@ export const RepositoryInfo: React.FC<RepositoryInfoProps> = ({ repository }) =>
     },
     title: {
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
       color: colors.text.primary,
       marginBottom: 12,
     },
@@ -68,18 +71,31 @@ export const RepositoryInfo: React.FC<RepositoryInfoProps> = ({ repository }) =>
 
   return (
     <View style={infoStyles.container}>
-      <Text style={infoStyles.title}>
-        Repository Information
-      </Text>
-      
+      <Text style={infoStyles.title}>Repository Information</Text>
+
       <View style={infoStyles.infoContainer}>
-        <InfoRow label="Language" value={repository.language || 'Not specified'} />
+        <InfoRow
+          label="Language"
+          value={repository.language || "Not specified"}
+        />
         <InfoRow label="Default Branch" value={repository.default_branch} />
         <InfoRow label="Size" value={formatFileSize(repository.size)} />
-        <InfoRow label="License" value={repository.license?.name || 'No license'} />
-        <InfoRow label="Created" value={new Date(repository.created_at).toLocaleDateString()} />
-        <InfoRow label="Last Updated" value={new Date(repository.updated_at).toLocaleDateString()} />
-        <InfoRow label="Last Pushed" value={new Date(repository.pushed_at).toLocaleDateString()} />
+        <InfoRow
+          label="License"
+          value={repository.license?.name || "No license"}
+        />
+        <InfoRow
+          label="Created"
+          value={new Date(repository.created_at).toLocaleDateString()}
+        />
+        <InfoRow
+          label="Last Updated"
+          value={new Date(repository.updated_at).toLocaleDateString()}
+        />
+        <InfoRow
+          label="Last Pushed"
+          value={new Date(repository.pushed_at).toLocaleDateString()}
+        />
       </View>
     </View>
   );

@@ -1,23 +1,17 @@
-import React from "react";
-import { View, Text, Dimensions } from "react-native";
-import { useRouter } from "expo-router";
-import StatsCard from "./StatsCard";
-import {
-  FileText,
-  GitCommit,
-  AlertCircle,
-  Star,
-  ClipboardCheck,
-} from "lucide-react-native";
-import { useModernTheme } from "@/context/ThemeContext";
 import { CardColorType } from "@/constants/Colors";
+import { useModernTheme } from "@/context/ThemeContext";
+import { useRouter } from "expo-router";
+import { ClipboardCheck, FileText, GitCommit, Star } from "lucide-react-native";
+import React from "react";
+import { Dimensions, Text, View } from "react-native";
+import StatsCard from "./StatsCard";
 
 const { width } = Dimensions.get("window");
 
 import { LucideIcon } from "lucide-react-native";
 
 type ValidRoutes =
-  | "/repository/RepositoryListScreen"
+  | "/repository/RepositoryScreen"
   | "/screens/CommitsScreen"
   | "/screens/Todo"
   | "/screens/StarsScreen";
@@ -38,7 +32,7 @@ const statsData: StatsData[] = [
     value: "47",
     label: "Repositories",
     colorType: "repositories",
-    route: "/repository/RepositoryListScreen", // Navigate to repositories screen
+    route: "/repository/RepositoryScreen", // Navigate to repositories screen
   },
   {
     id: "commits",
@@ -71,13 +65,13 @@ export default function OverviewSection() {
   const router = useRouter();
 
   type ValidRoutes =
-    | "/repository/RepositoryListScreen"
+    | "/repository/RepositoryScreen"
     | "/screens/CommitsScreen"
     | "/screens/Todo"
     | "/screens/StarsScreen";
-  
+
   const handleStatPress = (route: ValidRoutes) => {
-      router.push(route as any); // Cast to 'any' to bypass type checking
+    router.push(route as any); // Cast to 'any' to bypass type checking
   };
 
   return (

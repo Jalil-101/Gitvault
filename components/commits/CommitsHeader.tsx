@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
 import { CommitsHeaderProps } from "@/types/commits";
-
+import { router } from "expo-router";
 export const CommitsHeader: React.FC<CommitsHeaderProps> = ({
   navigation,
   selectedBranch,
@@ -25,7 +25,7 @@ export const CommitsHeader: React.FC<CommitsHeaderProps> = ({
         borderBottomColor: colors.border.primary,
       }}
     >
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity onPress={() => router.back()}>
         <ArrowLeft size={24} color={colors.text.primary} />
       </TouchableOpacity>
 

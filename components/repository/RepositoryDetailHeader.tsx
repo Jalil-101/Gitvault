@@ -1,9 +1,16 @@
 // components/repository/RepositoryDetailHeader.tsx
 import React from 'react';
 import { View, Text, Alert, Share, Linking, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
+
 import { Button } from '../ui/Button';
 import { useModernTheme } from '@/context/ThemeContext';
+
+import {
+  GitHubRepository as Repository,
+  ExistingScreenRepository,
+} from "@/types/repository";
+
+
 
 interface RepositoryDetailHeaderProps {
   repository: Repository;
@@ -66,14 +73,14 @@ export const RepositoryDetailHeader: React.FC<RepositoryDetailHeaderProps> = ({ 
         <Text style={headerStyles.ownerText}>{repository.owner.login}</Text>
         <Text style={headerStyles.repoNameText}>/{repository.name}</Text>
       </View>
-      
+
       <View style={headerStyles.buttonContainer}>
         <Button variant="secondary" onPress={handleShare}>
-          Share
+          <Text>Share</Text>
         </Button>
-        
+
         <Button variant="primary" onPress={handleOpenInBrowser}>
-          View on GitHub
+          <Text>View on GitHub</Text>
         </Button>
       </View>
     </View>

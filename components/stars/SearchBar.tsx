@@ -18,7 +18,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const { colors } = useModernTheme();
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+    <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
       <View
         style={{
           flexDirection: "row",

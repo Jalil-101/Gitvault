@@ -1,4 +1,8 @@
-import { NotificationType, NotificationData, NotificationFilter } from "@/types/notification";
+import {
+  NotificationType,
+  NotificationData,
+  NotificationFilter,
+} from "@/types/notification";
 
 export const getNotificationIcon = (type: NotificationType): string => {
   const iconMap: Record<NotificationType, string> = {
@@ -153,29 +157,6 @@ export const filterNotificationsByReadStatus = (
   return notifications.filter((notification) => !notification.isRead);
 };
 
-export const filterParticipatingNotifications = (
-  notifications: NotificationData[]
-): NotificationData[] => {
-  const participatingTypes: NotificationType[] = [
-    "pull_request",
-    "issue",
-    "review_requested",
-    "mention",
-  ];
-  return notifications.filter((notification) =>
-    participatingTypes.includes(notification.type)
-  );
-};
-
-export const filterMentionNotifications = (
-  notifications: NotificationData[]
-): NotificationData[] => {
-  return notifications.filter(
-    (notification) =>
-      notification.type === "mention" || notification.isImportant
-  );
-};
-
 export const sortNotificationsByPriority = (
   notifications: NotificationData[]
 ): NotificationData[] => {
@@ -214,16 +195,6 @@ export const getUnreadCount = (notifications: NotificationData[]): number => {
   return notifications.filter((notification) => !notification.isRead).length;
 };
 
-export const getParticipatingCount = (
-  notifications: NotificationData[]
-): number => {
-  return filterParticipatingNotifications(notifications).length;
-};
-
-export const getMentionsCount = (notifications: NotificationData[]): number => {
-  return filterMentionNotifications(notifications).length;
-};
-
 export const markNotificationAsRead = (
   notifications: NotificationData[],
   notificationId: string
@@ -260,33 +231,19 @@ export const generateNotificationFilters = (
   notifications: NotificationData[]
 ): NotificationFilter[] => {
   const unreadCount = getUnreadCount(notifications);
-  const participatingCount = getParticipatingCount(notifications);
-  const mentionsCount = getMentionsCount(notifications);
 
   return [
     {
       key: "all",
       label: "All",
       count: notifications.length,
-      icon: "notifications",
+      icon: "notifications-outline",
     },
     {
       key: "unread",
       label: "Unread",
       count: unreadCount,
-      icon: "notifications-circle",
-    },
-    {
-      key: "participating",
-      label: "Participating",
-      count: participatingCount,
-      icon: "person-circle",
-    },
-    {
-      key: "mentions",
-      label: "Mentions",
-      count: mentionsCount,
-      icon: "at-circle",
+      icon: "radio-button-off-outline",
     },
   ];
 };

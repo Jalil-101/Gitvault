@@ -14,7 +14,6 @@ interface NotificationFilterProps {
   onFilterChange: (filter: string) => void;
 }
 
-
 export const NotificationFilter: React.FC<NotificationFilterProps> = ({
   filters,
   activeFilter,
@@ -25,11 +24,12 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
   return (
     <View className="px-6 mb-4">
       <View
-        className="flex-row justify-between bg-opacity-60 p-3 rounded-2xl"
+        className="flex-row bg-opacity-60 p-3 rounded-2xl"
         style={{
           backgroundColor: isDarkTheme
             ? colors.surface.secondary + "40"
             : colors.surface.secondary + "60",
+          justifyContent: 'space-around', // Better spacing for 2 filters
         }}
       >
         {filters.map((filter, index) => {
@@ -41,10 +41,8 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
               onPress={() => onFilterChange(filter.key)}
               activeOpacity={0.7}
               style={{
-                flex: 1,
-                marginHorizontal: 4,
                 paddingVertical: 12,
-                paddingHorizontal: 8,
+                paddingHorizontal: 24, // Increased padding for better spacing
                 borderRadius: 16,
                 backgroundColor: isActive
                   ? isDarkTheme
@@ -54,6 +52,7 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
+                minWidth: 120, // Minimum width for better appearance
                 ...Platform.select({
                   ios: isActive
                     ? {
@@ -118,10 +117,10 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
                 )}
               </View>
 
-              {/* Short Label */}
+              {/* Label */}
               <Text
                 style={{
-                  fontSize: 11,
+                  fontSize: 12, // Slightly larger text
                   fontWeight: "600",
                   color: isActive
                     ? colors.text.inverse

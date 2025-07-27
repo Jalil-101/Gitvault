@@ -1,8 +1,12 @@
 // components/repository/RepositoryCloneSection.tsx
 import React from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
+// import { Repository } from '../../types/repository';
 import { useModernTheme } from '@/context/ThemeContext';
+import {
+  GitHubRepository as Repository,
+  ExistingScreenRepository,
+} from "@/types/repository";
 
 interface RepositoryCloneSectionProps {
   repository: Repository;

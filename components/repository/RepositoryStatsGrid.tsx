@@ -1,10 +1,14 @@
 // components/repository/RepositoryStatsGrid.tsx
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Repository } from '../../types/repository';
+// import { Repository } from '../../types/repository';
 import { StatCard } from '../ui/StatCard';
 import { formatNumber } from '../../utils/formatters';
 import { useModernTheme } from '@/context/ThemeContext';
+import {
+  GitHubRepository as Repository,
+  ExistingScreenRepository,
+} from "@/types/repository";
 
 interface RepositoryStatsGridProps {
   repository: Repository;

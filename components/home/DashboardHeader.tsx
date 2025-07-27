@@ -1,10 +1,19 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image, Platform } from "react-native";
-import { Bell } from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/store/authStore";
+import { Bell } from "lucide-react-native";
+import React from "react";
+import { Image, Platform, Text, TouchableOpacity, View } from "react-native";
 
 export default function DashboardHeader() {
   const { colors, shadows } = useModernTheme();
+  const user = useAuthStore((state) => state.user);
+
+  function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }
 
   return (
     <View className="px-5 py-4">
@@ -30,13 +39,14 @@ export default function DashboardHeader() {
           />
           <View>
             <Text className="text-sm" style={{ color: colors.text.tertiary }}>
-              Good evening
+              {getGreeting()}
+              {user?.firstName ? `, ${user.firstName}` : ""}
             </Text>
             <Text
               className="text-base font-semibold"
               style={{ color: colors.text.primary }}
             >
-              @developer
+              {user?.email ? user.email : ""}
             </Text>
           </View>
         </View>

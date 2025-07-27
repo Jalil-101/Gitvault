@@ -6,20 +6,26 @@ import { SettingsItem } from "@/components/settings/SettingsItem";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { StatsCard } from "@/components/settings/StatsCard";
 import { useThemeToggle } from "@/hooks/useColorScheme";
-import { useModernThemeColor, useAccentColors, useStatusColors } from "@/hooks/useThemeColor";
+import {
+  useAccentColors,
+  useModernThemeColor,
+  useStatusColors,
+} from "@/hooks/useThemeColor";
+import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, ScrollView, StatusBar } from "react-native";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  
+  const signOut = useAuthStore((state) => state.signOut);
+
   // Use specialized theme hooks for better organization
   const { isDarkTheme, toggleTheme } = useThemeToggle();
   const { colors } = useModernThemeColor();
   const accentColors = useAccentColors();
   const statusColors = useStatusColors();
-  
+
   // Local state for other settings
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
@@ -31,9 +37,9 @@ export default function SettingsScreen() {
       {
         text: "Sign Out",
         style: "destructive",
-        onPress: () => {
-          // Handle logout logic
-          console.log("User logged out");
+        onPress: async () => {
+          await signOut();
+          router.replace("/auth/signin");
         },
       },
     ]);

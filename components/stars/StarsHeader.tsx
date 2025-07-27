@@ -3,6 +3,7 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 import { useModernTheme } from "@/context/ThemeContext";
+import { router } from "expo-router";
 
 interface StarsHeaderProps {
   onBackPress: () => void;
@@ -32,7 +33,7 @@ export const StarsHeader: React.FC<StarsHeaderProps> = ({
           paddingVertical: 12,
         }}
       >
-        <TouchableOpacity onPress={onBackPress}>
+        <TouchableOpacity onPress={() => router.push("/screens/AllActivitiesScreen")}>
           <ArrowLeft size={24} color={colors.text.primary} />
         </TouchableOpacity>
 
