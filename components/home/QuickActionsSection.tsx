@@ -22,9 +22,9 @@ const quickActions = [
   {
     id: "prs",
     icon: GitPullRequest,
-    label: "PRs",
+    label: "Vault AI",
     colorKey: "error" as const,
-    onPress: () => router.push("/repository/RepositoryListScreen"),
+    onPress: () => router.push("/screens/VaultAIChatScreen"),
   },
   {
     id: "tasks",
