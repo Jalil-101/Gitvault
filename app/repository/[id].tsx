@@ -2,8 +2,10 @@
 import { AddFileModal } from "@/components/repository/AddFileModal";
 import { GRADIENTS } from "@/constants/Colors";
 import { useModernTheme } from "@/context/ThemeContext";
+import { fileService } from "@/services/fileService";
 import { repositoryService } from "@/services/repositoryService";
 import { Repository } from "@/types/repo/repository";
+import { DebugUtils } from "@/utils/debugUtils";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BlurView } from "expo-blur";
@@ -16,6 +18,7 @@ import {
   FlatList,
   Modal,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -38,8 +41,32 @@ export default function RepositoryDetailScreen() {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showAddFileModal, setShowAddFileModal] = useState(false);
 
+  // Validate and convert repository ID
+  const getValidRepositoryId = (): number | null => {
+    if (!id) {
+      console.error("Repository ID is missing");
+      return null;
+    }
+
+    const numId = Number(id);
+    if (isNaN(numId) || !Number.isFinite(numId)) {
+      console.error("Invalid repository ID:", id);
+      return null;
+    }
+
+    return numId;
+  };
+
   const fetchRepositoryDetails = useCallback(async () => {
-    if (!id) return;
+    const repoId = getValidRepositoryId();
+    if (!repoId) {
+      Alert.alert("Error", "Invalid repository ID");
+      router.back();
+      return;
+    }
+
+    // Debug: Validate repository ID
+    await DebugUtils.validateRepositoryId(repoId);
 
     try {
       // Check if user is authenticated first
@@ -56,10 +83,8 @@ export default function RepositoryDetailScreen() {
         return;
       }
 
-      console.log(`Fetching repository details for ID: ${id}`);
-      const repoDetails = await repositoryService.getRepositoryDetails(
-        Number(id)
-      );
+      console.log(`Fetching repository details for ID: ${repoId}`);
+      const repoDetails = await repositoryService.getRepositoryDetails(repoId);
       console.log("Repository details received:", repoDetails);
       setRepository(repoDetails);
     } catch (error) {
@@ -90,15 +115,39 @@ export default function RepositoryDetailScreen() {
   }, [id, router]);
 
   const fetchFiles = useCallback(async () => {
-    if (!id) return;
+    const repoId = getValidRepositoryId();
+    if (!repoId) return;
 
     setFilesLoading(true);
     try {
-      const repoFiles = await repositoryService.getRepositoryFiles(Number(id));
+      console.log(
+        `Attempting to fetch files for repository ${repoId} using fileService`
+      );
+
+      // Try the new fileService first
+      const repoFiles = await fileService.getRepositoryFiles(repoId);
+      console.log(`FileService returned ${repoFiles.length} files`);
       setFiles(repoFiles);
       setFilteredFiles(repoFiles);
-    } catch (error) {
-      Alert.alert("Error", "Failed to fetch repository files");
+    } catch (fileServiceError) {
+      console.error(
+        "FileService failed, trying repositoryService:",
+        fileServiceError
+      );
+
+      try {
+        // Fallback to repositoryService
+        const repoFiles = await repositoryService.getRepositoryFiles(repoId);
+        console.log(`RepositoryService returned ${repoFiles.length} files`);
+        setFiles(repoFiles);
+        setFilteredFiles(repoFiles);
+      } catch (repositoryServiceError) {
+        console.error("Both file services failed:", repositoryServiceError);
+        Alert.alert(
+          "Error",
+          "Failed to fetch repository files from both services"
+        );
+      }
     } finally {
       setFilesLoading(false);
     }
@@ -107,7 +156,8 @@ export default function RepositoryDetailScreen() {
   const styles = createThemedStyles(colors, shadows, glass, isDarkTheme);
 
   useEffect(() => {
-    checkAuthStatus(); // Debug auth status
+    // Run full diagnostic on component mount
+    DebugUtils.runFullDiagnostic();
     fetchRepositoryDetails();
     fetchFiles();
   }, [fetchRepositoryDetails, fetchFiles]);
@@ -139,7 +189,10 @@ export default function RepositoryDetailScreen() {
   };
 
   const handleViewCommits = () => {
-    router.push(`/repository/commits?id=${id}`);
+    const repoId = getValidRepositoryId();
+    if (repoId) {
+      router.push(`/repository/commits?id=${repoId}`);
+    }
   };
 
   const handleSearchPress = () => {
@@ -148,19 +201,7 @@ export default function RepositoryDetailScreen() {
 
   // Debug function to check authentication status
   const checkAuthStatus = async () => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const refreshToken = await AsyncStorage.getItem("refreshToken");
-      console.log("=== AUTH STATUS DEBUG ===");
-      console.log("Access token exists:", !!token);
-      console.log("Refresh token exists:", !!refreshToken);
-      if (token) {
-        console.log("Token preview:", token.substring(0, 50) + "...");
-      }
-      console.log("=========================");
-    } catch (error) {
-      console.error("Error checking auth status:", error);
-    }
+    await DebugUtils.checkAuthStatus();
   };
 
   const renderFileItem = (file: any, index: number) => (
@@ -190,6 +231,16 @@ export default function RepositoryDetailScreen() {
         <View style={styles.fileDetails}>
           <Text style={styles.fileName}>{file.name || "Unknown file"}</Text>
           <Text style={styles.filePath}>{file.path || ""}</Text>
+          {file.status && (
+            <Text
+              style={[
+                styles.fileStatus,
+                { color: getStatusColor(file.status) },
+              ]}
+            >
+              {file.status}
+            </Text>
+          )}
         </View>
       </View>
       <TouchableOpacity style={styles.fileActionButton}>
@@ -201,6 +252,19 @@ export default function RepositoryDetailScreen() {
       </TouchableOpacity>
     </TouchableOpacity>
   );
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "added":
+        return colors.status.success.main;
+      case "modified":
+        return colors.status.warning.main;
+      case "deleted":
+        return colors.status.error.main;
+      default:
+        return colors.text.tertiary;
+    }
+  };
 
   if (loading) {
     return (
@@ -241,6 +305,11 @@ export default function RepositoryDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={isDarkTheme ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <LinearGradient
         colors={GRADIENTS.light.background}
         style={StyleSheet.absoluteFillObject}
@@ -433,7 +502,7 @@ export default function RepositoryDetailScreen() {
         {/* Search Modal */}
         <FileSearchModal
           visible={showSearchModal}
-          repositoryId={Number(id)}
+          repositoryId={getValidRepositoryId() || 0}
           onClose={() => setShowSearchModal(false)}
           onFileSelect={(file) => {
             console.log("Selected file:", file);
@@ -444,7 +513,7 @@ export default function RepositoryDetailScreen() {
         {/* Add File Modal */}
         <AddFileModal
           visible={showAddFileModal}
-          repositoryId={Number(id)}
+          repositoryId={getValidRepositoryId() || 0}
           onClose={() => setShowAddFileModal(false)}
           onSuccess={handleFileAdded}
         />
@@ -930,6 +999,11 @@ const createThemedStyles = (
       fontSize: 12,
       color: colors.text.tertiary,
       marginTop: 2,
+    },
+
+    fileStatus: {
+      fontSize: 12,
+      marginTop: 4,
     },
 
     fileActionButton: {

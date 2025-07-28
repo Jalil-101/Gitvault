@@ -1,9 +1,9 @@
 // components/search/SearchHeader.tsx
-import React from "react";
-import { View, TouchableOpacity } from "react-native";
-import { ArrowLeft, Filter } from "lucide-react-native";
-import { useModernTheme } from "@/context/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
+import { useModernTheme } from "@/context/ThemeContext";
+import { ArrowLeft, Filter } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface SearchHeaderProps {
   onBack: () => void;
@@ -14,44 +14,56 @@ export const SearchHeader: React.FC<SearchHeaderProps> = ({
   onBack,
   onFilter,
 }) => {
-  const { colors, isDarkTheme } = useModernTheme();
+  const { colors, shadows } = useModernTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: colors.surface.primary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.primary,
+      ...shadows.md,
+    },
+    button: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: colors.surface.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: colors.border.secondary,
+      ...shadows.sm,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.text.primary,
+      letterSpacing: -0.5,
+    },
+    titleContainer: {
+      flex: 1,
+      alignItems: "center",
+      marginHorizontal: 16,
+    },
+  });
 
   return (
-    <View
-      className={`flex-row items-center justify-between px-4 py-3 ${
-        isDarkTheme ? "bg-modern-dark-bg-primary" : "bg-modern-light-bg-primary"
-      }`}
-    >
-      <TouchableOpacity
-        onPress={onBack}
-        className={`w-10 h-10 rounded-xl ${
-          isDarkTheme
-            ? "bg-modern-dark-surface-secondary"
-            : "bg-modern-light-surface-secondary"
-        } items-center justify-center`}
-      >
-        <ArrowLeft size={20} color={colors.text.primary} />
+    <View style={styles.container}>
+      <TouchableOpacity onPress={onBack} style={styles.button}>
+        <ArrowLeft size={22} color={colors.text.primary} />
       </TouchableOpacity>
 
-      <ThemedText
-        className={`text-lg font-semibold ${
-          isDarkTheme
-            ? "text-modern-dark-text-primary"
-            : "text-modern-light-text-primary"
-        }`}
-      >
-        Search
-      </ThemedText>
+      <View style={styles.titleContainer}>
+        <ThemedText style={styles.title}>Search</ThemedText>
+      </View>
 
-      <TouchableOpacity
-        onPress={onFilter}
-        className={`w-10 h-10 rounded-xl ${
-          isDarkTheme
-            ? "bg-modern-dark-surface-secondary"
-            : "bg-modern-light-surface-secondary"
-        } items-center justify-center`}
-      >
-        <Filter size={20} color={colors.text.primary} />
+      <TouchableOpacity onPress={onFilter} style={styles.button}>
+        <Filter size={22} color={colors.text.primary} />
       </TouchableOpacity>
     </View>
   );

@@ -1,12 +1,13 @@
-import React, { useState } from "react";
-import { View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text } from "react-native";
 import { useModernTheme } from "@/context/ThemeContext";
 import {
   ContributionGraphProps,
   ContributionDay,
 } from "../../types/contribution";
 import {
-  generateMockContributions,
+  generateContributionData,
+  getContributionStats,
   groupContributionsByMonth,
 } from "@/utils/contributions/contributionData";
 import { ContributionHeader } from "@/components/profile/contribution/ContributionHeader";
@@ -15,17 +16,43 @@ import { MonthNavigation } from "@/components/profile/contribution/MonthNavigati
 import { ContributionCalendar } from "@/components/profile/contribution/ContributionCalendar";
 import { SelectedDayInfo } from "@/components/profile/contribution/SelectedDayInfo";
 
-const mockContributions = generateMockContributions();
-
-export const ContributionGraph: React.FC<ContributionGraphProps> = ({
-  contributions = mockContributions,
-  totalContributions = 1247,
-  currentStreak = 12,
-  longestStreak = 87,
-}) => {
+export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
   const { colors, shadows } = useModernTheme();
   const [selectedDay, setSelectedDay] = useState<ContributionDay | null>(null);
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(11); // Start with current month
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0); // Start with current month
+  const [contributions, setContributions] = useState<ContributionDay[]>([]);
+  const [stats, setStats] = useState({
+    totalContributions: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadContributionData();
+  }, []);
+
+  const loadContributionData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load contribution data
+      const contributionData = await generateContributionData();
+      setContributions(contributionData);
+      
+      // Load stats
+      const contributionStats = await getContributionStats();
+      setStats({
+        totalContributions: contributionStats.totalContributions,
+        currentStreak: contributionStats.currentStreak,
+        longestStreak: contributionStats.longestStreak,
+      });
+    } catch (error) {
+      console.error("Error loading contribution data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const monthlyContributions = groupContributionsByMonth(contributions);
   const monthNames = [
@@ -50,7 +77,7 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
   const year = currentDate.getFullYear();
 
   const handlePreviousMonth = () => {
-    setCurrentMonthIndex(Math.max(0, currentMonthIndex - 1));
+    // Disabled - no going to previous months
   };
 
   const handleNextMonth = () => {
@@ -59,17 +86,37 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = ({
     );
   };
 
+  if (loading) {
+    return (
+      <View className="mb-6">
+        <View className="mx-5 p-5 rounded-2xl items-center justify-center"
+          style={{
+            backgroundColor: colors.surface.secondary,
+            borderWidth: 1,
+            borderColor: "#22C55E20",
+            ...shadows.sm,
+            height: 200,
+          }}
+        >
+          <Text style={{ color: colors.text.secondary }}>
+            Loading contribution data...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="mb-6">
       <ContributionHeader
-        totalContributions={totalContributions}
+        totalContributions={stats.totalContributions}
         colors={colors}
         shadows={shadows}
       />
 
       <ContributionStats
-        currentStreak={currentStreak}
-        longestStreak={longestStreak}
+        currentStreak={stats.currentStreak}
+        longestStreak={stats.longestStreak}
         colors={colors}
         shadows={shadows}
       />

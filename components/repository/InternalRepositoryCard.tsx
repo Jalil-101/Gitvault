@@ -118,10 +118,22 @@ export const InternalRepositoryCard: React.FC<InternalRepositoryCardProps> = ({
               ? `${repository.owner.firstName} ${repository.owner.lastName}`
               : "Unknown Owner"}
           </Text>
+          {(repository as any).language && (
+            <Text style={[cardStyles.ownerText, { marginLeft: 8 }]}>
+              • {(repository as any).language}
+            </Text>
+          )}
         </View>
-        <Text style={cardStyles.updatedText}>
-          Updated {formatDate(repository.updatedAt || "")}
-        </Text>
+        <View style={{ alignItems: "flex-end" }}>
+          {(repository as any).starCount > 0 && (
+            <Text style={[cardStyles.ownerText, { marginBottom: 2 }]}>
+              ⭐ {(repository as any).starCount}
+            </Text>
+          )}
+          <Text style={cardStyles.updatedText}>
+            Updated {formatDate(repository.updatedAt || "")}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );

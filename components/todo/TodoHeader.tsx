@@ -1,60 +1,63 @@
 // components/TodoHeader.tsx
+import { useModernTheme } from "@/context/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface TodoHeaderProps {
   onAddPress: () => void;
 }
 
 const TodoHeader: React.FC<TodoHeaderProps> = ({ onAddPress }) => {
-  const { colors } = useModernThemeColor();
+  const { colors, shadows } = useModernTheme();
 
   return (
-    <View style={styles.headerContainer}>
-      <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-        My Todos
-      </Text>
+    <View
+      style={{
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+        paddingVertical: 8,
+      }}
+    >
+      <View>
+        <Text
+          style={{
+            fontSize: 28,
+            fontWeight: "bold",
+            color: colors.text.primary,
+            marginBottom: 4,
+          }}
+        >
+          My Todos
+        </Text>
+        <Text
+          style={{
+            fontSize: 16,
+            color: colors.text.secondary,
+          }}
+        >
+          Stay organized and productive
+        </Text>
+      </View>
+
       <TouchableOpacity
-        style={[
-          styles.addButton,
-          {
-            backgroundColor: colors.interactive.primary,
-            // Remove shadows if not defined
-          },
-        ]}
+        style={{
+          backgroundColor: colors.interactive.primary,
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          justifyContent: "center",
+          alignItems: "center",
+          ...shadows.md,
+        }}
         onPress={onAddPress}
       >
-        <Text style={[styles.addButtonText, { color: colors.text.inverse }]}>
-          +
-        </Text>
+        <Ionicons name="add" size={24} color={colors.text.inverse} />
       </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: "bold",
-  },
-  addButton: {
-    borderRadius: 24,
-    width: 48,
-    height: 48,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addButtonText: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-});
 
 export default TodoHeader;

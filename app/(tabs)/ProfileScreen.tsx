@@ -1,30 +1,38 @@
 // app/(tabs)/profile.tsx
-import React from "react";
+import { CreateRepositoryModal } from "@/components/CreateRepositoryModal";
+import { ContributionGraph } from "@/components/profile/ContributionGraph";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { QuickActions } from "@/components/profile/QuickActions";
+import { useModernTheme } from "@/context/ThemeContext";
+import { useProfileData } from "@/hooks/useProfileData";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useState } from "react";
 import {
+  Alert,
+  ColorValue,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StatusBar,
-  RefreshControl,
-  Alert,
   StyleSheet,
-  View,
-  ColorValue,
 } from "react-native";
-import { useModernTheme } from "@/context/ThemeContext";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileStats } from "@/components/profile/ProfileStats";
-import { QuickActions } from "@/components/profile/QuickActions";
-import { ActivityFeed } from "@/components/profile/ActivityFeed";
-import { useProfileData } from "@/hooks/useProfileData";
-import { ContributionGraph } from "@/components/profile/ContributionGraph";
-import { LinearGradient } from "expo-linear-gradient";
 
 export default function ProfileScreen() {
   const { colors, theme, gradients } = useModernTheme();
   const { profileData, isRefreshing, handleRefresh } = useProfileData();
+  const [showCreateRepoModal, setShowCreateRepoModal] = useState(false);
 
   const handlePress = (action: string) => {
     Alert.alert("Action", `${action} pressed`);
+  };
+
+  const handleCreateRepository = () => {
+    setShowCreateRepoModal(true);
+  };
+
+  const handleRepositoryCreated = () => {
+    // Refresh profile data or handle success
+    console.log("Repository created successfully!");
   };
 
   return (
@@ -65,16 +73,21 @@ export default function ProfileScreen() {
           onSettingsPress={() => handlePress("Settings")}
         />
 
-        <ProfileStats stats={profileData.stats} onStatPress={handlePress} />
-
         <QuickActions
-          onNewRepo={() => handlePress("New Repository")}
+          onNewRepo={handleCreateRepository}
           onViewRepos={() => handlePress("View Repositories")}
           onActivity={() => handlePress("View Activity")}
         />
 
         <ContributionGraph />
       </ScrollView>
+
+      {/* Create Repository Modal */}
+      <CreateRepositoryModal
+        visible={showCreateRepoModal}
+        onClose={() => setShowCreateRepoModal(false)}
+        onSuccess={handleRepositoryCreated}
+      />
     </SafeAreaView>
   );
 }

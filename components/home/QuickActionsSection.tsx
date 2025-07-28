@@ -1,6 +1,12 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { AlertCircle, ClipboardCheck, GitPullRequest, Plus, Search } from "lucide-react-native";
+import { router } from "expo-router";
+import {
+  ClipboardCheck,
+  GitPullRequest,
+  Plus,
+  Search,
+} from "lucide-react-native";
 import React from "react";
 import {
   ColorValue,
@@ -9,7 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { router } from "expo-router";
 
 const quickActions = [
   {

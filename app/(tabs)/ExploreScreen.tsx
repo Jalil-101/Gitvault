@@ -19,6 +19,7 @@ import {
   Platform,
   RefreshControl,
   SafeAreaView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -449,6 +450,11 @@ export default function ExploreScreen() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background.primary }]}
     >
+      <StatusBar
+        barStyle={isDarkTheme ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       {/* Header with Search */}
       <View
         style={[

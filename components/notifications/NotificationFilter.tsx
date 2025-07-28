@@ -1,6 +1,6 @@
 import { useModernTheme } from "@/context/ThemeContext";
-import { TouchableOpacity, View, Text, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 // components/notifications/NotificationFilter.tsx
 interface NotificationFilterProps {
@@ -19,18 +19,18 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
   activeFilter,
   onFilterChange,
 }) => {
-  const { colors, isDarkTheme } = useModernTheme();
+  const { colors, isDarkTheme, shadows } = useModernTheme();
 
   return (
-    <View className="px-6 mb-4">
+    <View style={styles.container}>
       <View
-        className="flex-row bg-opacity-60 p-3 rounded-2xl"
-        style={{
-          backgroundColor: isDarkTheme
-            ? colors.surface.secondary + "40"
-            : colors.surface.secondary + "60",
-          justifyContent: 'space-around', // Better spacing for 2 filters
-        }}
+        style={[
+          styles.filterContainer,
+          {
+            backgroundColor: colors.surface.secondary,
+            ...shadows.sm,
+          },
+        ]}
       >
         {filters.map((filter, index) => {
           const isActive = activeFilter === filter.key;
@@ -40,77 +40,37 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
               key={filter.key}
               onPress={() => onFilterChange(filter.key)}
               activeOpacity={0.7}
-              style={{
-                paddingVertical: 12,
-                paddingHorizontal: 24, // Increased padding for better spacing
-                borderRadius: 16,
-                backgroundColor: isActive
-                  ? isDarkTheme
+              style={[
+                styles.filterButton,
+                {
+                  backgroundColor: isActive
                     ? colors.interactive.primary
-                    : colors.interactive.primary
-                  : "transparent",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-                minWidth: 120, // Minimum width for better appearance
-                ...Platform.select({
-                  ios: isActive
-                    ? {
-                        shadowColor: colors.interactive.primary,
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 4,
-                      }
-                    : {},
-                  android: isActive
-                    ? {
-                        elevation: 3,
-                      } as any
-                    : {},
-                }),
-              }}
+                    : "transparent",
+                  ...(isActive && shadows.md),
+                },
+              ]}
             >
               {/* Icon */}
-              <View style={{ marginBottom: 6, position: "relative" }}>
+              <View style={styles.iconContainer}>
                 <Ionicons
                   name={filter.icon as any}
                   size={22}
-                  color={
-                    isActive
-                      ? colors.text.inverse
-                      : isDarkTheme
-                      ? colors.text.primary
-                      : colors.text.primary
-                  }
+                  color={isActive ? colors.text.inverse : colors.text.primary}
                   style={{ opacity: isActive ? 1 : 0.7 }}
                 />
 
                 {/* Count Badge */}
                 {filter.count > 0 && (
                   <View
-                    style={{
-                      position: "absolute",
-                      top: -6,
-                      right: -8,
-                      backgroundColor: "#FF4444",
-                      borderRadius: 10,
-                      minWidth: 20,
-                      height: 20,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      borderWidth: 2,
-                      borderColor: isDarkTheme
-                        ? colors.surface.primary
-                        : colors.surface.primary,
-                    }}
+                    style={[
+                      styles.countBadge,
+                      {
+                        backgroundColor: colors.status.error.main,
+                        borderColor: colors.surface.primary,
+                      },
+                    ]}
                   >
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        fontWeight: "700",
-                        color: "white",
-                      }}
-                    >
+                    <Text style={styles.countText}>
                       {filter.count > 99 ? "99+" : filter.count}
                     </Text>
                   </View>
@@ -119,17 +79,13 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
 
               {/* Label */}
               <Text
-                style={{
-                  fontSize: 12, // Slightly larger text
-                  fontWeight: "600",
-                  color: isActive
-                    ? colors.text.inverse
-                    : isDarkTheme
-                    ? colors.text.primary
-                    : colors.text.primary,
-                  opacity: isActive ? 1 : 0.8,
-                  textAlign: "center",
-                }}
+                style={[
+                  styles.filterLabel,
+                  {
+                    color: isActive ? colors.text.inverse : colors.text.primary,
+                    opacity: isActive ? 1 : 0.8,
+                  },
+                ]}
               >
                 {filter.label}
               </Text>
@@ -140,3 +96,54 @@ export const NotificationFilter: React.FC<NotificationFilterProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    padding: 8,
+    borderRadius: 16,
+    justifyContent: "space-between", // Changed from space-around for better distribution
+    gap: 8, // Add gap between items
+  },
+  filterButton: {
+    flex: 1, // Make buttons take equal space
+    paddingVertical: 16, // Increased from 12
+    paddingHorizontal: 12, // Reduced from 24 to fit better
+    borderRadius: 12, // Slightly reduced from 16
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    minHeight: 60, // Set minimum height for better touch targets
+  },
+  iconContainer: {
+    marginBottom: 8, // Increased from 6
+    position: "relative",
+    alignItems: "center",
+  },
+  countBadge: {
+    position: "absolute",
+    top: -8, // Adjusted position
+    right: -10, // Adjusted position
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+  },
+  countText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "white",
+  },
+  filterLabel: {
+    fontSize: 13, // Slightly increased from 12
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 16, // Add line height for better text rendering
+  },
+});

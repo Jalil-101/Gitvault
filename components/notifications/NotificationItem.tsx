@@ -1,13 +1,28 @@
 // components/notifications/NotificationItem.tsx
-import React from "react";
-import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import { useModernTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export interface NotificationData {
   id: string;
-  type: "pull_request" | "issue" | "push" | "star" | "fork" | "release";
+  type:
+    | "pull_request"
+    | "issue"
+    | "push"
+    | "star"
+    | "fork"
+    | "release"
+    | "like"
+    | "comment"
+    | "todo";
   title: string;
   repository: string;
   author: string;
@@ -35,6 +50,9 @@ const getNotificationIcon = (
     star: "star",
     fork: "git-branch",
     release: "cube-outline",
+    like: "heart",
+    comment: "chatbubble-outline",
+    todo: "checkmark-circle-outline",
   };
   return iconMap[type];
 };
@@ -44,9 +62,12 @@ const getNotificationColor = (type: NotificationData["type"]) => {
     pull_request: "blue",
     issue: "orange",
     push: "green",
-    star: "red",
+    star: "yellow",
     fork: "purple",
     release: "indigo",
+    like: "red",
+    comment: "blue",
+    todo: "green",
   };
   return colorMap[type];
 };
@@ -65,14 +86,11 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   return (
     <Pressable
       onPress={() => onPress(notification.id)}
-      className={`mx-4 mb-4 rounded-2xl overflow-hidden ${
-        isDarkTheme
-          ? "bg-modern-dark-surface-primary"
-          : "bg-modern-light-surface-primary"
-      }`}
       style={[
-        shadows.md,
+        styles.container,
         {
+          backgroundColor: colors.surface.primary,
+          ...shadows.md,
           borderWidth: notification.isRead ? 0 : 1,
           borderColor: notification.isRead
             ? "transparent"
@@ -80,18 +98,15 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         },
       ]}
     >
-      <View className="flex-row items-start p-5">
+      <View style={styles.content}>
         {/* Enhanced Notification Icon */}
-        <View className="mr-4 mt-0.5">
+        <View style={styles.iconContainer}>
           <View
-            className={`w-12 h-12 rounded-2xl items-center justify-center ${
-              isDarkTheme
-                ? "bg-modern-dark-surface-secondary"
-                : "bg-modern-light-surface-secondary"
-            }`}
             style={[
-              shadows.sm,
+              styles.iconBackground,
               {
+                backgroundColor: colors.surface.secondary,
+                ...shadows.sm,
                 borderWidth: 2,
                 borderColor: `${accentColor.main}15`,
               },
@@ -99,7 +114,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           >
             <LinearGradient
               colors={accentColor.gradient}
-              className="w-8 h-8 rounded-xl items-center justify-center"
+              style={styles.iconGradient}
             >
               <Ionicons name={iconName} size={18} color={colors.text.inverse} />
             </LinearGradient>
@@ -107,75 +122,56 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         </View>
 
         {/* Enhanced Content */}
-        <View className="flex-1">
-          <View className="flex-row items-start justify-between">
-            <View className="flex-1 mr-3">
+        <View style={styles.textContainer}>
+          <View style={styles.headerRow}>
+            <View style={styles.titleContainer}>
               {/* Title with better spacing */}
               <Text
                 numberOfLines={2}
-                className={`text-base font-semibold leading-6 mb-2 ${
-                  notification.isRead
-                    ? isDarkTheme
-                      ? "text-modern-dark-text-tertiary"
-                      : "text-modern-light-text-tertiary"
-                    : isDarkTheme
-                    ? "text-modern-dark-text-primary"
-                    : "text-modern-light-text-primary"
-                }`}
+                style={[
+                  styles.title,
+                  {
+                    color: notification.isRead
+                      ? colors.text.tertiary
+                      : colors.text.primary,
+                  },
+                ]}
               >
                 {notification.title}
               </Text>
 
               {/* Repository info with enhanced styling */}
-              <View className="flex-row items-center mb-2">
+              <View style={styles.repositoryInfo}>
                 <Text
-                  className={`text-sm font-medium ${
-                    isDarkTheme
-                      ? "text-modern-dark-text-secondary"
-                      : "text-modern-light-text-secondary"
-                  }`}
+                  style={[styles.repository, { color: colors.text.secondary }]}
                 >
                   {notification.repository}
                 </Text>
                 <View
-                  className={`w-1 h-1 rounded-full mx-2 ${
-                    isDarkTheme
-                      ? "bg-modern-dark-text-muted"
-                      : "bg-modern-light-text-muted"
-                  }`}
+                  style={[
+                    styles.dot,
+                    { backgroundColor: colors.text.tertiary },
+                  ]}
                 />
-                <Text
-                  className={`text-sm ${
-                    isDarkTheme
-                      ? "text-modern-dark-text-muted"
-                      : "text-modern-light-text-muted"
-                  }`}
-                >
+                <Text style={[styles.author, { color: colors.text.tertiary }]}>
                   by {notification.author}
                 </Text>
               </View>
 
               {/* Time with subtle styling */}
-              <Text
-                className={`text-xs ${
-                  isDarkTheme
-                    ? "text-modern-dark-text-muted"
-                    : "text-modern-light-text-muted"
-                }`}
-              >
+              <Text style={[styles.time, { color: colors.text.tertiary }]}>
                 {notification.time}
               </Text>
             </View>
 
             {/* Enhanced Action Buttons */}
-            <View className="flex-col items-center space-y-2">
+            <View style={styles.actionButtons}>
               {notification.isImportant && (
                 <View
-                  className={`p-1.5 rounded-lg ${
-                    isDarkTheme
-                      ? "bg-modern-dark-surface-secondary"
-                      : "bg-modern-light-surface-secondary"
-                  }`}
+                  style={[
+                    styles.importantBadge,
+                    { backgroundColor: colors.surface.secondary },
+                  ]}
                 >
                   <Ionicons
                     name="flame-outline"
@@ -188,15 +184,18 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
               {!notification.isRead && (
                 <TouchableOpacity
                   onPress={() => onMarkAsRead?.(notification.id)}
-                  className="p-2"
-                  style={{
-                    borderRadius: 8,
-                    backgroundColor: `${accentColor.main}15`,
-                  }}
+                  style={[
+                    styles.readButton,
+                    {
+                      backgroundColor: `${accentColor.main}15`,
+                    },
+                  ]}
                 >
                   <View
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: accentColor.main }}
+                    style={[
+                      styles.readDot,
+                      { backgroundColor: accentColor.main },
+                    ]}
                   />
                 </TouchableOpacity>
               )}
@@ -207,14 +206,14 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
       {/* Enhanced bottom accent for unread notifications */}
       {!notification.isRead && (
-        <View className="h-1">
+        <View style={styles.bottomAccent}>
           <LinearGradient
             colors={[
               `${accentColor.main}40`,
               accentColor.main,
               `${accentColor.main}40`,
             ]}
-            className="h-full"
+            style={styles.gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           />
@@ -223,3 +222,98 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 20,
+  },
+  iconContainer: {
+    marginRight: 16,
+    marginTop: 2,
+  },
+  iconBackground: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconGradient: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textContainer: {
+    flex: 1,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  repositoryInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  repository: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginHorizontal: 8,
+  },
+  author: {
+    fontSize: 14,
+  },
+  time: {
+    fontSize: 12,
+  },
+  actionButtons: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+  },
+  importantBadge: {
+    padding: 6,
+    borderRadius: 8,
+  },
+  readButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  readDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  bottomAccent: {
+    height: 4,
+  },
+  gradient: {
+    flex: 1,
+  },
+});

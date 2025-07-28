@@ -1,9 +1,9 @@
 // components/profile/QuickActions.tsx
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { Plus, GitBranch, TrendingUp } from "lucide-react-native";
-import { useModernTheme } from "@/context/ThemeContext";
 import { ActionCard } from "@/components/profile/ActionCard";
+import { useModernTheme } from "@/context/ThemeContext";
+import { GitBranch, Plus, TrendingUp } from "lucide-react-native";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface QuickActionsProps {
   onNewRepo: () => void;

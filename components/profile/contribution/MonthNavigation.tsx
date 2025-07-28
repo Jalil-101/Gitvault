@@ -1,7 +1,7 @@
 // components/explore/MonthNavigation.tsx
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface MonthNavigationProps {
   currentMonthIndex: number;
@@ -24,7 +24,8 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   colors,
   shadows,
 }) => {
-  const isPreviousDisabled = currentMonthIndex === 0;
+  // Disable previous button - no going to past months
+  const isPreviousDisabled = true;
   const isNextDisabled = currentMonthIndex === totalMonths - 1;
 
   return (
@@ -34,26 +35,17 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
         disabled={isPreviousDisabled}
         className="flex-row items-center p-3 rounded-xl"
         style={{
-          backgroundColor: isPreviousDisabled
-            ? colors.surface.tertiary
-            : colors.surface.secondary,
+          backgroundColor: colors.surface.tertiary,
           borderWidth: 1,
-          borderColor: isPreviousDisabled
-            ? `${colors.text.tertiary}20`
-            : "#22C55E30",
+          borderColor: `${colors.text.tertiary}20`,
           ...shadows.sm,
         }}
       >
-        <ChevronLeft
-          size={16}
-          color={isPreviousDisabled ? colors.text.tertiary : "#16A34A"}
-        />
+        <ChevronLeft size={16} color={colors.text.tertiary} />
         <Text
           className="text-sm font-medium ml-1"
           style={{
-            color: isPreviousDisabled
-              ? colors.text.tertiary
-              : colors.text.primary,
+            color: colors.text.tertiary,
           }}
         >
           Previous

@@ -1,8 +1,8 @@
 // components/SignUpHeader.tsx
-import React from "react";
-import { View, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useModernTheme } from "@/context/ThemeContext";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { Text, View } from "react-native";
 
 export const SignUpHeader: React.FC = () => {
   const { colors, shadows } = useModernTheme();
@@ -45,7 +45,7 @@ export const SignUpHeader: React.FC = () => {
           textShadowRadius: 4,
         }}
       >
-        Join GitVault
+        Join Vault
       </Text>
       <Text
         style={{
