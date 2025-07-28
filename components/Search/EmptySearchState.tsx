@@ -1,9 +1,9 @@
 // components/search/EmptySearchState.tsx
-import React from "react";
-import { View } from "react-native";
-import { Search } from "lucide-react-native";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
 import { ThemedText } from "@/components/ThemedText";
+import { useModernTheme } from "@/context/ThemeContext";
+import { Search } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 interface EmptySearchStateProps {
   query?: string;
@@ -12,22 +12,56 @@ interface EmptySearchStateProps {
 export const EmptySearchState: React.FC<EmptySearchStateProps> = ({
   query,
 }) => {
-  const { colors } = useModernThemeColor();
+  const { colors, shadows } = useModernTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 32,
+    },
+    iconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.surface.secondary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 24,
+      ...shadows.md,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "600",
+      color: colors.text.primary,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.text.tertiary,
+      textAlign: "center",
+      lineHeight: 24,
+    },
+  });
 
   return (
-    <View className="flex-1 items-center justify-center px-8">
-      <View className="w-20 h-20 rounded-full bg-modern-dark-surface-secondary items-center justify-center mb-6">
+    <View style={styles.container}>
+      <View style={styles.iconContainer}>
         <Search size={32} color={colors.text.tertiary} />
       </View>
 
-      <ThemedText className="text-modern-dark-text-primary text-xl font-semibold text-center mb-2">
-        {query ? "No results found" : "Start searching"}
+      <ThemedText style={styles.title}>
+        {query
+          ? "No results found for your search"
+          : "Search for repositories, users, topics, and more."}
       </ThemedText>
 
-      <ThemedText className="text-modern-dark-text-tertiary text-center leading-6">
+      <ThemedText style={styles.description}>
         {query
           ? `We couldn't find anything matching "${query}". Try adjusting your search or filters.`
-          : "Search for repositories, users, topics, and more across GitHub."}
+          : "Search for repositories, users, topics, and more."}
       </ThemedText>
     </View>
   );

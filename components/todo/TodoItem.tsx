@@ -1,9 +1,10 @@
 // components/TodoItem.tsx
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
 import { Todo } from "@/types/todo";
-import { format } from "date-fns";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
+import { Ionicons } from "@expo/vector-icons";
+import { isBefore } from "date-fns";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface TodoItemProps {
   item: Todo;
@@ -12,7 +13,7 @@ interface TodoItemProps {
 }
 
 const TodoItem: React.FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
-  const { colors } = useModernThemeColor();
+  const { colors } = useModernTheme();
 
   const getPriorityColor = (priority: Todo["priority"]) => {
     switch (priority) {
@@ -26,6 +27,53 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
         return colors.border.secondary;
     }
   };
+
+  const getDeadlineStatus = () => {
+    if (!item.deadline) return null;
+
+    const now = new Date();
+    const deadline = new Date(item.deadline);
+
+    if (item.completed) {
+      return { status: "completed", color: colors.status.success.main };
+    }
+
+    if (isBefore(deadline, now)) {
+      return { status: "overdue", color: colors.status.error.main };
+    }
+
+    const daysUntilDeadline = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysUntilDeadline <= 1) {
+      return { status: "urgent", color: colors.status.error.main };
+    } else if (daysUntilDeadline <= 3) {
+      return { status: "soon", color: colors.status.warning.main };
+    } else {
+      return { status: "upcoming", color: colors.status.success.main };
+    }
+  };
+
+  const formatDeadline = (date: Date) => {
+    const now = new Date();
+    const deadline = new Date(date);
+    const daysUntilDeadline = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (daysUntilDeadline === 0) {
+      return "Due today";
+    } else if (daysUntilDeadline === 1) {
+      return "Due tomorrow";
+    } else if (daysUntilDeadline < 0) {
+      return `${Math.abs(daysUntilDeadline)} days overdue`;
+    } else {
+      return `Due in ${daysUntilDeadline} days`;
+    }
+  };
+
+  const deadlineStatus = getDeadlineStatus();
 
   const checkboxStyle = {
     ...styles.checkbox,
@@ -44,7 +92,6 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
         {
           backgroundColor: colors.surface.primary,
           borderColor: colors.border.primary,
-          // Removed shadows since it does not exist in the theme
         },
       ]}
     >
@@ -89,6 +136,34 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
                   {item.description}
                 </Text>
               )}
+
+              {/* Deadline Information */}
+              {item.deadline && (
+                <View style={styles.deadlineContainer}>
+                  <Ionicons
+                    name="time-outline"
+                    size={14}
+                    color={deadlineStatus?.color || colors.text.tertiary}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[
+                      styles.deadlineText,
+                      { color: deadlineStatus?.color || colors.text.tertiary },
+                    ]}
+                  >
+                    {formatDeadline(item.deadline)}
+                  </Text>
+                  {item.notificationIds && item.notificationIds.length > 0 && (
+                    <Ionicons
+                      name="notifications-outline"
+                      size={14}
+                      color={colors.accents.blue.main}
+                      style={{ marginLeft: 8 }}
+                    />
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </TouchableOpacity>
@@ -101,94 +176,87 @@ const TodoItem: React.FC<TodoItemProps> = ({ item, onToggle, onDelete }) => {
             ]}
           />
           <TouchableOpacity
-            style={[
-              styles.deleteButton,
-              { backgroundColor: colors.status.error.main },
-            ]}
+            style={styles.deleteButton}
             onPress={() => onDelete(item.id)}
           >
-            <Text
-              style={[styles.deleteButtonText, { color: colors.text.inverse }]}
-            >
-              Delete
-            </Text>
+            <Ionicons
+              name="trash-outline"
+              size={18}
+              color={colors.status.error.main}
+            />
           </TouchableOpacity>
         </View>
       </View>
-
-      {item.dueDate && (
-        <Text style={[styles.dueDate, { color: colors.text.tertiary }]}>
-          Due: {format(item.dueDate, "MMM dd, yyyy HH:mm")}
-        </Text>
-      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   todoContainer: {
-    borderRadius: 8,
-    padding: 16,
     marginBottom: 12,
+    borderRadius: 12,
     borderWidth: 1,
+    overflow: "hidden",
   },
   todoContent: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
   },
   todoMainContent: {
     flex: 1,
-    marginRight: 12,
   },
   todoRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 2,
-    marginRight: 12,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
   checkmark: {
-    fontSize: 12,
-    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   todoTextContainer: {
     flex: 1,
   },
   todoTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
+    marginBottom: 4,
   },
   todoDescription: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  deadlineContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 4,
+  },
+  deadlineText: {
+    fontSize: 12,
+    fontWeight: "500",
   },
   todoActions: {
     flexDirection: "row",
     alignItems: "center",
+    marginLeft: 12,
   },
   priorityIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginRight: 8,
   },
   deleteButton: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-  },
-  dueDate: {
-    fontSize: 14,
-    marginTop: 8,
+    padding: 4,
   },
 });
 

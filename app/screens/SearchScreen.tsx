@@ -1,26 +1,25 @@
 // Main SearchScreen component (refactored)
-import React, { useEffect } from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { KeyboardAvoidingView, Platform, StatusBar, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { SearchHeader } from '@/components/search/SearchHeader';
-import { SearchInput } from '@/components/search/SearchInput';
-import { SearchFilters } from '@/components/search/SearchFilters';
-import SearchContent from '@/components/search/SearchContent';
-import SearchResultsSection from '@/components/search/SearchResultsSection';
+import SearchContent from "@/components/search/SearchContent";
+import { SearchFilters } from "@/components/search/SearchFilters";
+import { SearchHeader } from "@/components/search/SearchHeader";
+import { SearchInput } from "@/components/search/SearchInput";
 
-import { useModernTheme } from '@/context/ThemeContext';
-import { useSearchState } from '@/hooks/useSearchState';
-import { useSearchActions } from '@/hooks/useSearchActions';
-import { useSearchFiltering } from '@/hooks/useSearchFiltering';
-import { useSearchDisplayState } from '@/hooks/useSearchDisplayState';
-import { SearchSuggestion } from '@/components/search/SearchSuggestions';
+import { SearchSuggestion } from "@/components/search/SearchSuggestions";
+import { useModernTheme } from "@/context/ThemeContext";
+import { useSearchActions } from "@/hooks/useSearchActions";
+import { useSearchDisplayState } from "@/hooks/useSearchDisplayState";
+import { useSearchFiltering } from "@/hooks/useSearchFiltering";
+import { useSearchState } from "@/hooks/useSearchState";
 
 export default function SearchScreen() {
   const router = useRouter();
-  const { isDarkTheme } = useModernTheme();
+  const { colors, isDarkTheme, gradients } = useModernTheme();
 
   // State management
   const {
@@ -57,22 +56,22 @@ export default function SearchScreen() {
   // Computed values
   const filteredResults = useSearchFiltering(searchResults, filters);
   const showStates = useSearchDisplayState(
-      searchQuery,
-      searchResults,
-      filteredResults,
-      isLoading,
-      recentSearches
+    searchQuery,
+    searchResults,
+    filteredResults,
+    isLoading,
+    recentSearches
   ) as {
-      showEmptyState: boolean;
-      showNoResults: boolean; // Ensure this is strictly boolean
-      showResults: boolean;
-      showRecentSearches: boolean;
-      showSuggestions: boolean;
+    showEmptyState: boolean;
+    showNoResults: boolean;
+    showResults: boolean;
+    showRecentSearches: boolean;
+    showSuggestions: boolean;
   };
 
   // Navigation handlers
   const handleBack = () => router.back();
-  const handleFilter = () => console.log('Open filter modal');
+  const handleFilter = () => console.log("Open filter modal");
 
   // Debounced search effect
   useEffect(() => {
@@ -86,50 +85,60 @@ export default function SearchScreen() {
   }, [searchQuery, performSearch]);
 
   return (
-    <SafeAreaView
-      className={`flex-1 ${isDarkTheme ? 'bg-modern-dark-bg-primary' : 'bg-modern-light-bg-primary'}`}
-    >
-      <StatusBar style={isDarkTheme ? "light" : "dark"} />
-      
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Header */}
-        <SearchHeader onBack={handleBack} onFilter={handleFilter} />
+    <View style={{ flex: 1 }}>
+      <StatusBar
+        barStyle={isDarkTheme ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
 
-        {/* Search Input */}
-        <SearchInput
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onClear={handleClearSearch}
-          placeholder="Search repositories, users, topics..."
-        />
+      <LinearGradient colors={gradients.background} style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            {/* Header */}
+            <SearchHeader onBack={handleBack} onFilter={handleFilter} />
 
-        {/* Filters */}
-        {(searchQuery || showStates.showResults) && (
-          <SearchFilters
-            filters={filters}
-            onFilterPress={handleFilterPress}
-          />
-        )}
+            {/* Search Input */}
+            <SearchInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onClear={handleClearSearch}
+              placeholder="Search repositories, users, topics..."
+            />
 
-        {/* Content */}
-        <View className="flex-1">
-          <SearchContent
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-            filteredResults={filteredResults}
-            recentSearches={recentSearches}
-            showStates={showStates}
-            onRecentSearchPress={handleRecentSearchPress}
-            onSuggestionPress={handleSuggestionPress as (suggestion: SearchSuggestion) => void}
-            onResultPress={handleResultPress}
-            onRemoveRecentSearch={handleRemoveRecentSearch}
-            onClearAllRecentSearches={handleClearAllRecentSearches}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            {/* Filters */}
+            {(searchQuery || showStates.showResults) && (
+              <SearchFilters
+                filters={filters}
+                onFilterPress={handleFilterPress}
+              />
+            )}
+
+            {/* Content */}
+            <View style={{ flex: 1 }}>
+              <SearchContent
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+                filteredResults={filteredResults}
+                recentSearches={recentSearches}
+                showStates={showStates}
+                onRecentSearchPress={handleRecentSearchPress}
+                onSuggestionPress={
+                  handleSuggestionPress as (
+                    suggestion: SearchSuggestion
+                  ) => void
+                }
+                onResultPress={handleResultPress}
+                onRemoveRecentSearch={handleRemoveRecentSearch}
+                onClearAllRecentSearches={handleClearAllRecentSearches}
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </LinearGradient>
+    </View>
   );
 }

@@ -1,10 +1,10 @@
 // components/SearchResultsSection.tsx
-import React from "react";
-import { View } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { SearchResultItem } from "@/components/search/SearchResultItem";
 import { useModernTheme } from "@/context/ThemeContext";
 import { SearchResult } from "@/types/search";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
 interface SearchResultsSectionProps {
   filteredResults: SearchResult[];
@@ -15,27 +15,36 @@ const SearchResultsSection: React.FC<SearchResultsSectionProps> = ({
   filteredResults,
   onResultPress,
 }) => {
-  const { isDarkTheme } = useModernTheme();
+  const { colors } = useModernTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      paddingBottom: 24,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginHorizontal: 20,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text.primary,
+    },
+    resultCount: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+      fontWeight: "500",
+    },
+  });
 
   return (
-    <View className="pb-6">
-      <View className="flex-row items-center justify-between mx-4 mb-4">
-        <ThemedText
-          className={`${
-            isDarkTheme
-              ? "text-modern-dark-text-primary"
-              : "text-modern-light-text-primary"
-          } font-semibold text-lg`}
-        >
-          Results
-        </ThemedText>
-        <ThemedText
-          className={`${
-            isDarkTheme
-              ? "text-modern-dark-text-tertiary"
-              : "text-modern-light-text-tertiary"
-          } text-sm`}
-        >
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>Results</ThemedText>
+        <ThemedText style={styles.resultCount}>
           {filteredResults.length}{" "}
           {filteredResults.length === 1 ? "result" : "results"}
         </ThemedText>

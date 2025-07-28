@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { repositoryService } from "@/services/repositoryService";
 import { CreateRepositoryData } from "@/types/repo/repository";
 import { useModernTheme } from "@/context/ThemeContext";
+import { recordRepositoryCreation } from "@/utils/contributions/contributionData";
 
 interface CreateRepositoryModalProps {
   visible: boolean;
@@ -60,7 +61,14 @@ export const CreateRepositoryModal: React.FC<CreateRepositoryModalProps> = ({
 
     setLoading(true);
     try {
-      await repositoryService.createRepository(formData);
+      const newRepository = await repositoryService.createRepository(formData);
+      
+      // Record the repository creation for contribution tracking
+      await recordRepositoryCreation(
+        newRepository.id.toString(),
+        newRepository.name
+      );
+      
       Alert.alert("Success", "Repository created successfully!");
       setFormData({ name: "", description: "", isPrivate: false });
       setErrors({});

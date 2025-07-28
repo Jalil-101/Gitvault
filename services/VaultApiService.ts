@@ -1,5 +1,5 @@
 // services/VaultApiService.ts
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/store/authStore";
 
 interface ApiResponse<T> {
   content?: T[];
@@ -40,13 +40,10 @@ interface CreateCommentData {
 }
 
 interface AuthResponse {
-  accessToken: string;
+  token: string;
   refreshToken: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-  };
+  firstName: string;
+  lastName: string;
 }
 
 interface Repository {
@@ -65,25 +62,56 @@ interface Repository {
 class VaultApiService {
   private baseURL = "https://vault-backend-susi.onrender.com";
   private accessToken: string | null = null;
+  private tokenInitialized = false;
 
   constructor() {
-    this.initializeToken();
+    // Don't call initializeToken in constructor - it's async
+    // We'll handle token initialization in getAccessToken
   }
 
   private async initializeToken() {
+    if (this.tokenInitialized) return;
+
     try {
-      this.accessToken = await AsyncStorage.getItem("accessToken");
+      // First try to get token from store
+      this.accessToken = useAuthStore.getState().token;
+
+      // If no token in store, try to sync from storage
+      if (!this.accessToken) {
+        console.log(
+          "VaultApiService - No token in store, syncing from storage..."
+        );
+        await useAuthStore.getState().syncTokensFromStorage();
+        this.accessToken = useAuthStore.getState().token;
+      }
+
+      this.tokenInitialized = true;
+      console.log("VaultApiService - Token initialized:", !!this.accessToken);
     } catch (error) {
-      console.error("Error initializing token:", error);
+      console.error("VaultApiService - Error initializing token:", error);
+      this.tokenInitialized = true; // Mark as initialized even on error
     }
   }
 
   private async getAccessToken(): Promise<string | null> {
+    if (!this.tokenInitialized) {
+      await this.initializeToken();
+    }
+
     if (!this.accessToken) {
       try {
-        this.accessToken = await AsyncStorage.getItem("accessToken");
+        // Try to sync from storage first
+        console.log(
+          "VaultApiService - No token available, syncing from storage..."
+        );
+        await useAuthStore.getState().syncTokensFromStorage();
+        this.accessToken = useAuthStore.getState().token;
+        console.log(
+          "VaultApiService - Retrieved fresh token:",
+          !!this.accessToken
+        );
       } catch (error) {
-        console.error("Token retrieval error:", error);
+        console.error("VaultApiService - Token retrieval error:", error);
         return null;
       }
     }
@@ -95,6 +123,12 @@ class VaultApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const token = await this.getAccessToken();
+    console.log(
+      `VaultApiService - Making request to: ${this.baseURL}${endpoint}`
+    );
+    console.log("VaultApiService - Token available:", !!token);
+    console.log("VaultApiService - Request method:", options.method || "GET");
+    console.log("VaultApiService - Request headers:", options.headers);
 
     const config: RequestInit = {
       headers: {
@@ -106,26 +140,48 @@ class VaultApiService {
     };
 
     try {
+      console.log("VaultApiService - Starting request...");
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+      console.log(`VaultApiService - Response status: ${response.status}`);
+      console.log(
+        `VaultApiService - Response headers:`,
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (response.status === 401) {
         // Token expired, clear stored tokens and redirect to login
-        await AsyncStorage.removeItem("accessToken");
-        await AsyncStorage.removeItem("refreshToken");
+        console.log("VaultApiService - Token expired, clearing tokens");
+        await useAuthStore.getState().signOut();
         this.accessToken = null;
+        this.tokenInitialized = false;
         throw new Error("Authentication expired. Please login again.");
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error(
+          `VaultApiService - Request failed: ${response.status} - ${errorText}`
+        );
         throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
+          `API request failed: ${response.status} - ${errorText}`
         );
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log(
+        "VaultApiService - Request successful, data received:",
+        typeof data
+      );
+      return data;
     } catch (error) {
-      console.error("API request error:", error);
+      console.error("VaultApiService - API request error:", error);
+      console.error("VaultApiService - Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        endpoint,
+        baseURL: this.baseURL,
+      });
       throw error;
     }
   }
@@ -133,8 +189,7 @@ class VaultApiService {
   // Store tokens after login
   async storeTokens(accessToken: string, refreshToken: string): Promise<void> {
     try {
-      await AsyncStorage.setItem("accessToken", accessToken);
-      await AsyncStorage.setItem("refreshToken", refreshToken);
+      // The auth store handles token storage internally
       this.accessToken = accessToken;
     } catch (error) {
       console.error("Token storage error:", error);
@@ -144,31 +199,40 @@ class VaultApiService {
 
   // Authentication
   async signUp(userData: {
-    username: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
   }): Promise<AuthResponse> {
     return this.makeRequest<AuthResponse>("/api/v1/auth/signup", {
       method: "POST",
-      body: JSON.stringify(userData),
+      body: JSON.stringify({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        password: userData.password,
+      }),
     });
   }
 
   async signIn(credentials: {
-    username: string;
+    email: string;
     password: string;
   }): Promise<AuthResponse> {
     const response = await this.makeRequest<AuthResponse>(
       "/api/v1/auth/signin",
       {
         method: "POST",
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
       }
     );
 
     // Store tokens after successful login
-    if (response.accessToken && response.refreshToken) {
-      await this.storeTokens(response.accessToken, response.refreshToken);
+    if (response.token && response.refreshToken) {
+      await this.storeTokens(response.token, response.refreshToken);
     }
 
     return response;
@@ -176,13 +240,21 @@ class VaultApiService {
 
   async signOut(): Promise<void> {
     try {
-      await AsyncStorage.removeItem("accessToken");
-      await AsyncStorage.removeItem("refreshToken");
+      await useAuthStore.getState().signOut();
       this.accessToken = null;
     } catch (error) {
       console.error("Sign out error:", error);
       throw error;
     }
+  }
+
+  async refreshToken(refreshToken: string): Promise<{ token: string }> {
+    return this.makeRequest<{ token: string }>("/api/v1/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({
+        refreshToken: refreshToken,
+      }),
+    });
   }
 
   // Posts
@@ -228,7 +300,7 @@ class VaultApiService {
   async createRepository(repoData: {
     name: string;
     description?: string;
-    isPublic: boolean;
+    isPrivate: boolean;
   }): Promise<Repository> {
     return this.makeRequest<Repository>("/api/repositories", {
       method: "POST",

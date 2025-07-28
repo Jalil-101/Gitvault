@@ -1,5 +1,5 @@
 // stores/authStore.ts
-import { authAPI } from "@/services/authApi";
+import { vaultApiService } from "@/services/VaultApiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {jwtDecode} from "jwt-decode";
 import { create } from "zustand";
@@ -48,6 +48,7 @@ export interface AuthState {
   verifyAuth: () => Promise<boolean>;
   completeOnboarding: () => void;
   clearError: () => void;
+  syncTokensFromStorage: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -67,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null });
         try {
           // Backend returns user object directly (no nested response)
-          const response = await authAPI.signUp(userData);
+          const response = await vaultApiService.signUp(userData);
           console.log("🔵 signUp backend response:", response);
 
           // Note: Backend signup doesn't return tokens, only user data
@@ -75,13 +76,13 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: {
               id: response.id,
-              firstName: response.firstname, // Backend returns lowercase
-              lastName: response.lastname, // Backend returns lowercase
+              firstName: response.firstName,
+              lastName: response.lastName,
               email: response.email,
               role: response.role,
             },
             loading: false,
-            isFirstTime: false,
+            isFirstTime: true, // Set to true for new accounts to trigger onboarding
           });
 
           // Auto sign-in after successful signup
@@ -104,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (credentials: SignInCredentials): Promise<AuthResult> => {
         set({ loading: true, error: null });
         try {
-          const response = await authAPI.signIn(credentials);
+          const response = await vaultApiService.signIn(credentials);
           console.log("🟢 signIn backend response:", response);
 
           // Store tokens in AsyncStorage
@@ -113,8 +114,8 @@ export const useAuthStore = create<AuthState>()(
 
           const storedToken = await AsyncStorage.getItem("accessToken");
           const storedRefreshToken = await AsyncStorage.getItem("refreshToken");
-          console.log("🗝️ Stored accessToken:", storedToken);
-          console.log("🗝️ Stored refreshToken:", storedRefreshToken);
+          console.log("🗝️ Stored accessToken:", storedToken ? `${storedToken.substring(0, 20)}...` : "null");
+          console.log("🗝️ Stored refreshToken:", storedRefreshToken ? `${storedRefreshToken.substring(0, 20)}...` : "null");
 
           set({
             user: {
@@ -122,8 +123,8 @@ export const useAuthStore = create<AuthState>()(
               lastName: response.lastName,
               email: credentials.email, // Backend doesn't return email in signin response
             },
-            token: response.token,
-            refreshToken: response.refreshToken,
+            token: response.token, // Store token in store state
+            refreshToken: response.refreshToken, // Store refresh token in store state
             isAuthenticated: true,
             loading: false,
           });
@@ -145,7 +146,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { token } = get();
           if (token) {
-            await authAPI.signOut(token);
+            await vaultApiService.signOut(token);
           }
 
           // Clear AsyncStorage
@@ -171,16 +172,25 @@ export const useAuthStore = create<AuthState>()(
           const storedToken = await AsyncStorage.getItem("accessToken");
           const storedRefreshToken = await AsyncStorage.getItem("refreshToken");
 
-          if (!storedToken) return false;
+          console.log("🔍 verifyAuth - storedToken:", storedToken ? `${storedToken.substring(0, 20)}...` : "null");
+          console.log("🔍 verifyAuth - storedRefreshToken:", storedRefreshToken ? `${storedRefreshToken.substring(0, 20)}...` : "null");
+
+          if (!storedToken) {
+            console.log("🔍 verifyAuth - No stored token found");
+            return false;
+          }
 
           const tokenPayload: any = jwtDecode(storedToken);
           const isExpired = tokenPayload.exp * 1000 < Date.now();
+
+          console.log("🔍 verifyAuth - Token expired:", isExpired);
 
           if (isExpired) {
             // Try to refresh token if available
             if (storedRefreshToken) {
               try {
-                const refreshResponse = await authAPI.refreshToken(
+                console.log("🔄 Attempting to refresh token...");
+                const refreshResponse = await vaultApiService.refreshToken(
                   storedRefreshToken
                 );
                 await AsyncStorage.setItem(
@@ -189,21 +199,25 @@ export const useAuthStore = create<AuthState>()(
                 );
 
                 set({
-                  token: refreshResponse.token,
+                  token: refreshResponse.token, // Update store state
                   isAuthenticated: true,
                 });
+                console.log("✅ Token refreshed successfully");
                 return true;
               } catch (refreshError) {
+                console.log("❌ Token refresh failed:", refreshError);
                 // Refresh failed, clear auth state
                 await get().signOut();
                 return false;
               }
             } else {
+              console.log("❌ No refresh token available");
               await get().signOut();
               return false;
             }
           } else {
-            // Token is still valid
+            // Token is valid, sync to store state
+            console.log("✅ Token is valid, syncing to store state");
             set({
               token: storedToken,
               refreshToken: storedRefreshToken,
@@ -212,7 +226,7 @@ export const useAuthStore = create<AuthState>()(
             return true;
           }
         } catch (error) {
-          console.error("Auth verification error:", error);
+          console.error("❌ verifyAuth error:", error);
           await get().signOut();
           return false;
         }
@@ -223,6 +237,46 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: (): void => set({ error: null }),
+
+      syncTokensFromStorage: async (): Promise<void> => {
+        const storedToken = await AsyncStorage.getItem("accessToken");
+        const storedRefreshToken = await AsyncStorage.getItem("refreshToken");
+
+        if (storedToken) {
+          const tokenPayload: any = jwtDecode(storedToken);
+          const isExpired = tokenPayload.exp * 1000 < Date.now();
+
+          if (isExpired) {
+            // If token is expired, try to refresh it
+            if (storedRefreshToken) {
+              try {
+                const refreshResponse = await vaultApiService.refreshToken(
+                  storedRefreshToken
+                );
+                await AsyncStorage.setItem(
+                  "accessToken",
+                  refreshResponse.token
+                );
+                set({ token: refreshResponse.token });
+                console.log("✅ Token refreshed from storage");
+              } catch (refreshError) {
+                console.log("❌ Token refresh failed from storage:", refreshError);
+                // Refresh failed, clear auth state
+                await get().signOut();
+              }
+            } else {
+              console.log("❌ No refresh token available for sync");
+              await get().signOut();
+            }
+          } else {
+            // Token is valid, sync to store state
+            set({ token: storedToken, refreshToken: storedRefreshToken });
+            console.log("✅ Token is valid, synced from storage");
+          }
+        } else {
+          console.log("🔍 No access token found in storage for sync");
+        }
+      },
     }),
     {
       name: "auth-storage",

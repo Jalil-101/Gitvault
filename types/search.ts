@@ -14,7 +14,10 @@ export interface SearchResult {
   language?: string;
   stars?: number;
   forks?: number;
+  avatar?: string;
   verified?: boolean;
+  isPrivate?: boolean;
+  ownerId?: string;
 }
 
 export interface RecentSearch {

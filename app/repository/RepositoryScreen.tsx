@@ -7,12 +7,15 @@ import { useModernTheme } from "@/context/ThemeContext";
 import { repositoryService } from "@/services/repositoryService";
 import { Repository } from "@/types/repo/repository";
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
   RefreshControl,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -20,11 +23,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// import { Repository } from "@/types/repository";
 
 export default function RepositoriesScreen() {
   const router = useRouter();
-  const { colors, shadows, gradients } = useModernTheme();
+  const { colors, shadows, gradients, isDarkTheme } = useModernTheme();
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [filteredRepositories, setFilteredRepositories] = useState<
     Repository[]
@@ -262,111 +264,127 @@ export default function RepositoriesScreen() {
   });
 
   return (
-    <SafeAreaView style={dynamicStyles.container}>
-      <View style={dynamicStyles.header}>
-        <Text style={dynamicStyles.screenTitle}>Repositories</Text>
-        {activeTab === "my" && (
+    <View style={dynamicStyles.container}>
+      <StatusBar
+        barStyle={isDarkTheme ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
+      <LinearGradient
+        colors={gradients.background as [any, any, ...any[]]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
+      <SafeAreaView style={{ flex: 1 }}>
+        <BlurView
+          intensity={80}
+          tint={isDarkTheme ? "dark" : "light"}
+          style={dynamicStyles.header}
+        >
+          <Text style={dynamicStyles.screenTitle}>Repositories</Text>
+          {activeTab === "my" && (
+            <TouchableOpacity
+              style={dynamicStyles.createButton}
+              onPress={() => setShowCreateModal(true)}
+            >
+              <Ionicons name="add" size={24} color={colors.text.inverse} />
+            </TouchableOpacity>
+          )}
+        </BlurView>
+
+        <View style={dynamicStyles.tabContainer}>
           <TouchableOpacity
-            style={dynamicStyles.createButton}
-            onPress={() => setShowCreateModal(true)}
+            style={[
+              dynamicStyles.tab,
+              activeTab === "my" && dynamicStyles.activeTab,
+            ]}
+            onPress={() => setActiveTab("my")}
           >
-            <Ionicons name="add" size={24} color={colors.text.inverse} />
+            <Text
+              style={[
+                dynamicStyles.tabText,
+                activeTab === "my" && dynamicStyles.activeTabText,
+              ]}
+            >
+              My Repositories
+            </Text>
           </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={dynamicStyles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            dynamicStyles.tab,
-            activeTab === "my" && dynamicStyles.activeTab,
-          ]}
-          onPress={() => setActiveTab("my")}
-        >
-          <Text
+          <TouchableOpacity
             style={[
-              dynamicStyles.tabText,
-              activeTab === "my" && dynamicStyles.activeTabText,
+              dynamicStyles.tab,
+              activeTab === "public" && dynamicStyles.activeTab,
             ]}
+            onPress={() => setActiveTab("public")}
           >
-            My Repositories
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            dynamicStyles.tab,
-            activeTab === "public" && dynamicStyles.activeTab,
-          ]}
-          onPress={() => setActiveTab("public")}
-        >
-          <Text
-            style={[
-              dynamicStyles.tabText,
-              activeTab === "public" && dynamicStyles.activeTabText,
-            ]}
-          >
-            Public
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              style={[
+                dynamicStyles.tabText,
+                activeTab === "public" && dynamicStyles.activeTabText,
+              ]}
+            >
+              Public
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={dynamicStyles.searchContainer}>
-        <Ionicons name="search" size={20} color={colors.text.tertiary} />
-        <TextInput
-          style={dynamicStyles.searchInput}
-          placeholder="Search repositories..."
-          placeholderTextColor={colors.text.quaternary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      <FlatList
-        data={filteredRepositories}
-        renderItem={renderRepository}
-        keyExtractor={(item) => item.id.toString()}
-        style={dynamicStyles.list}
-        contentContainerStyle={
-          filteredRepositories.length === 0
-            ? dynamicStyles.emptyContainer
-            : undefined
-        }
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.interactive.primary}
-            colors={[colors.interactive.primary]}
+        <View style={dynamicStyles.searchContainer}>
+          <Ionicons name="search" size={20} color={colors.text.tertiary} />
+          <TextInput
+            style={dynamicStyles.searchInput}
+            placeholder="Search repositories..."
+            placeholderTextColor={colors.text.quaternary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-        }
-        ListEmptyComponent={renderEmptyState}
-        showsVerticalScrollIndicator={false}
-      />
+        </View>
 
-      <CreateRepositoryModal
-        visible={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={fetchRepositories}
-      />
+        <FlatList
+          data={filteredRepositories}
+          renderItem={renderRepository}
+          keyExtractor={(item) => item.id.toString()}
+          style={dynamicStyles.list}
+          contentContainerStyle={
+            filteredRepositories.length === 0
+              ? dynamicStyles.emptyContainer
+              : undefined
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.interactive.primary}
+              colors={[colors.interactive.primary]}
+            />
+          }
+          ListEmptyComponent={renderEmptyState}
+          showsVerticalScrollIndicator={false}
+        />
 
-      <RepositoryOptionsModal
-        visible={showOptionsModal}
-        repository={selectedRepository}
-        onClose={() => setShowOptionsModal(false)}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onViewFiles={handleViewFiles}
-      />
+        <CreateRepositoryModal
+          visible={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={fetchRepositories}
+        />
 
-      <EditRepositoryModal
-        visible={showEditModal}
-        repository={selectedRepository}
-        onClose={() => setShowEditModal(false)}
-        onSuccess={() => {
-          setShowEditModal(false);
-          fetchRepositories();
-        }}
-      />
-    </SafeAreaView>
+        <RepositoryOptionsModal
+          visible={showOptionsModal}
+          repository={selectedRepository}
+          onClose={() => setShowOptionsModal(false)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onViewFiles={handleViewFiles}
+        />
+
+        <EditRepositoryModal
+          visible={showEditModal}
+          repository={selectedRepository}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            setShowEditModal(false);
+            fetchRepositories();
+          }}
+        />
+      </SafeAreaView>
+    </View>
   );
 }

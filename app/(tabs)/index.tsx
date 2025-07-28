@@ -1,42 +1,35 @@
-import React, { useState } from "react";
-import {
-  View,
-  ScrollView,
-  StatusBar,
-  RefreshControl,
-  StyleSheet,
-  ColorValue,
-  FlatList,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { useModernTheme } from "@/context/ThemeContext";
 import DashboardHeader from "@/components/home/DashboardHeader";
 import OverviewSection from "@/components/home/OverviewSection";
 import QuickActionsSection from "@/components/home/QuickActionsSection";
-
-import { RepositoryCard } from "@/components/repository/RepositoryCard";
-
-import NotificationTestButton from "@/components/notifications/NotificationTestButton";
-
+import { useModernTheme } from "@/context/ThemeContext";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useState } from "react";
 import {
-  GitHubRepository as Repository,
- 
-} from "@/types/repository";
+  ColorValue,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-
-
+import { DebugPanel } from "@/components/DebugPanel";
+import NotificationTestButton from "@/components/notifications/NotificationTestButton";
+import { GitHubRepository as Repository } from "@/types/repository";
 
 export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
   const { colors, gradients, isDarkTheme } = useModernTheme();
- 
 
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 2000);
   };
-   const repositories: Repository[] = [
+  const repositories: Repository[] = [
     {
       id: 1,
       name: "my-awesome-app",
@@ -45,7 +38,7 @@ export default function DashboardScreen() {
       private: false,
       owner: {
         login: "username",
-        avatar_url: "https://github.com/username.png"
+        avatar_url: "https://github.com/username.png",
       },
       html_url: "https://github.com/username/my-awesome-app",
       clone_url: "https://github.com/username/my-awesome-app.git",
@@ -63,9 +56,9 @@ export default function DashboardScreen() {
       topics: ["react-native", "typescript", "mobile", "expo"],
       license: {
         name: "MIT License",
-        spdx_id: "MIT"
-      }
-    }
+        spdx_id: "MIT",
+      },
+    },
     // Add more repositories...
   ];
 
@@ -103,17 +96,68 @@ export default function DashboardScreen() {
           <DashboardHeader />
           <OverviewSection />
           <QuickActionsSection />
-          
+
           <NotificationTestButton />
+
+          {/* Debug Panel Toggle */}
+          <View style={{ padding: 20 }}>
+            <View
+              style={{
+                backgroundColor: colors.surface.primary,
+                padding: 15,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: colors.border.primary,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontSize: 16,
+                  fontWeight: "600",
+                  marginBottom: 10,
+                }}
+              >
+                🐛 Debug Tools
+              </Text>
+              <Text
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: 14,
+                  marginBottom: 15,
+                }}
+              >
+                Use these tools to troubleshoot authentication and repository
+                issues.
+              </Text>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: colors.interactive.primary,
+                  padding: 12,
+                  borderRadius: 8,
+                  alignItems: "center",
+                }}
+                onPress={() => setShowDebugPanel(true)}
+              >
+                <Text
+                  style={{
+                    color: colors.text.inverse,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Open Debug Panel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
-        {/* <FlatList
-        data={repositories}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <RepositoryCard repository={item} />
-        )}
-        className="pt-2"
-      /> */}
+
+        {/* Debug Panel */}
+        <DebugPanel
+          visible={showDebugPanel}
+          onClose={() => setShowDebugPanel(false)}
+        />
       </SafeAreaView>
     </View>
   );

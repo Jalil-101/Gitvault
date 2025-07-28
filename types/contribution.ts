@@ -2,7 +2,7 @@
 export interface ContributionDay {
   date: string;
   count: number;
-  level: 0 | 1 | 2 | 3 | 4;
+  level: 0 | 1 | 2 | 3; // Updated to match new system
 }
 
 export interface ContributionGraphProps {

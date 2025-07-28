@@ -1,8 +1,9 @@
 import { CardColorType } from "@/constants/Colors";
 import { useModernTheme } from "@/context/ThemeContext";
+import { dashboardService, DashboardStats } from "@/services/dashboardService";
 import { useRouter } from "expo-router";
 import { ClipboardCheck, FileText, GitCommit, Star } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import StatsCard from "./StatsCard";
 
@@ -22,56 +23,81 @@ interface StatsData {
   value: string;
   label: string;
   colorType: CardColorType;
-  route: ValidRoutes; // Change to ValidRoutes to match the expected type
+  route: ValidRoutes;
 }
-
-const statsData: StatsData[] = [
-  {
-    id: "repositories",
-    icon: FileText,
-    value: "47",
-    label: "Repositories",
-    colorType: "repositories",
-    route: "/repository/RepositoryScreen", // Navigate to repositories screen
-  },
-  {
-    id: "commits",
-    icon: GitCommit,
-    value: "1.2k",
-    label: "Commits",
-    colorType: "commits",
-    route: "/screens/CommitsScreen", // Navigate to commits screen
-  },
-  {
-    id: "issues",
-    icon: ClipboardCheck,
-    value: "23",
-    label: "Tasks",
-    colorType: "issues",
-    route: "/screens/Todo", // Navigate to tasks screen
-  },
-  {
-    id: "stars",
-    icon: Star,
-    value: "456",
-    label: "Stars",
-    colorType: "stars",
-    route: "/screens/StarsScreen", // Navigate to stars screen
-  },
-];
 
 export default function OverviewSection() {
   const { colors } = useModernTheme();
   const router = useRouter();
+  const [stats, setStats] = useState<DashboardStats>({
+    repositories: 0,
+    commits: 0,
+    tasks: 0,
+    stars: 0,
+    recentRepositories: [],
+  });
+  const [loading, setLoading] = useState(true);
 
-  type ValidRoutes =
-    | "/repository/RepositoryScreen"
-    | "/screens/CommitsScreen"
-    | "/screens/Todo"
-    | "/screens/StarsScreen";
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const dashboardStats = await dashboardService.getDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "k";
+    }
+    return num.toString();
+  };
+
+  const statsData: StatsData[] = [
+    {
+      id: "repositories",
+      icon: FileText,
+      value: loading ? "..." : formatNumber(stats.repositories),
+      label: "Repositories",
+      colorType: "repositories",
+      route: "/repository/RepositoryScreen",
+    },
+    {
+      id: "commits",
+      icon: GitCommit,
+      value: loading ? "..." : formatNumber(stats.commits),
+      label: "Commits",
+      colorType: "commits",
+      route: "/screens/CommitsScreen",
+    },
+    {
+      id: "issues",
+      icon: ClipboardCheck,
+      value: loading ? "..." : formatNumber(stats.tasks),
+      label: "Tasks",
+      colorType: "issues",
+      route: "/screens/Todo",
+    },
+    {
+      id: "stars",
+      icon: Star,
+      value: loading ? "..." : formatNumber(stats.stars),
+      label: "Stars",
+      colorType: "stars",
+      route: "/screens/StarsScreen",
+    },
+  ];
 
   const handleStatPress = (route: ValidRoutes) => {
-    router.push(route as any); // Cast to 'any' to bypass type checking
+    router.push(route as any);
   };
 
   return (

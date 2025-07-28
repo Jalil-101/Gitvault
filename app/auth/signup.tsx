@@ -1,24 +1,25 @@
 // app/signup.tsx
+import { useModernTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
-  ScrollView,
   Alert,
+  Button,
   KeyboardAvoidingView,
   Platform,
-  Button,
+  ScrollView,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "@/store/authStore";
 
 // Component imports
-import { GradientBackground } from "@/components/auth/signup/GradientBackground";
-import { SignUpHeader } from "@/components/auth/signup/SignUpHeader";
-import { FormContainer } from "@/components/auth/signup/FormContainer";
-import { InputField } from "@/components/auth/signup/InputField";
 import { ErrorDisplay } from "@/components/auth/signup/ErrorDisplay";
-import { SubmitButton } from "@/components/auth/signup/SubmitButton";
 import { FooterLink } from "@/components/auth/signup/FooterLink";
+import { FormContainer } from "@/components/auth/signup/FormContainer";
+import { GradientBackground } from "@/components/auth/signup/GradientBackground";
+import { InputField } from "@/components/auth/signup/InputField";
+import { SignUpHeader } from "@/components/auth/signup/SignUpHeader";
+import { SubmitButton } from "@/components/auth/signup/SubmitButton";
 
 interface SignUpFormData {
   firstName: string;
@@ -26,6 +27,14 @@ interface SignUpFormData {
   email: string;
   password: string;
   confirmPassword: string;
+}
+
+interface FieldError {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 export default function SignUpScreen(): React.JSX.Element {
@@ -40,41 +49,58 @@ export default function SignUpScreen(): React.JSX.Element {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [focusedField, setFocusedField] = useState<string>("");
+  const [fieldErrors, setFieldErrors] = useState<FieldError>({});
 
   const router = useRouter();
+  const { colors } = useModernTheme();
   const { signUp, loading, error, clearError } = useAuthStore();
 
   const handleInputChange = (field: string, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Clear field-specific error when user starts typing
+    if (fieldErrors[field as keyof FieldError]) {
+      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+
+    // Clear global error
     if (error) clearError();
   };
 
   const validateForm = (): boolean => {
+    const errors: FieldError = {};
+    let isValid = true;
+
     if (!formData.firstName.trim()) {
-      Alert.alert("Error", "Please enter your first name");
-      return false;
+      errors.firstName = "Please enter your first name";
+      isValid = false;
     }
+
     if (!formData.lastName.trim()) {
-      Alert.alert("Error", "Please enter your last name");
-      return false;
+      errors.lastName = "Please enter your last name";
+      isValid = false;
     }
+
     if (!formData.email.trim()) {
-      Alert.alert("Error", "Please enter your email");
-      return false;
+      errors.email = "Please enter your email";
+      isValid = false;
+    } else if (!formData.email.includes("@")) {
+      errors.email = "Please enter a valid email address";
+      isValid = false;
     }
-    if (!formData.email.includes("@")) {
-      Alert.alert("Error", "Please enter a valid email address");
-      return false;
-    }
+
     if (formData.password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
-      return false;
+      errors.password = "Password must be at least 6 characters long";
+      isValid = false;
     }
+
     if (formData.password !== formData.confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return false;
+      errors.confirmPassword = "Passwords do not match";
+      isValid = false;
     }
-    return true;
+
+    setFieldErrors(errors);
+    return isValid;
   };
 
   const handleSignUp = async (): Promise<void> => {
@@ -88,9 +114,8 @@ export default function SignUpScreen(): React.JSX.Element {
     });
 
     if (result.success) {
-      Alert.alert("Success", "Account created successfully!", [
-        { text: "OK", onPress: () => router.replace("/(tabs)") },
-      ]);
+      // Don't navigate to tabs immediately - let onboarding handle it
+      Alert.alert("Success", "Account created successfully!", [{ text: "OK" }]);
     } else {
       Alert.alert(
         "Sign Up Failed",
@@ -99,9 +124,13 @@ export default function SignUpScreen(): React.JSX.Element {
     }
   };
 
+  const handleSignIn = (): void => {
+    router.push("./signin");
+  };
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: "#ffffff" }}
+      style={{ flex: 1, backgroundColor: colors.background.primary }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
     >
@@ -117,7 +146,7 @@ export default function SignUpScreen(): React.JSX.Element {
         <View style={{ flex: 1, paddingHorizontal: 24, paddingBottom: 24 }}>
           <SignUpHeader />
 
-          <FormContainer>
+          <FormContainer variant="glass">
             {/* Name Fields */}
             <View style={{ flexDirection: "row", gap: 12 }}>
               <View style={{ flex: 1 }}>
@@ -132,6 +161,7 @@ export default function SignUpScreen(): React.JSX.Element {
                   focusedField={focusedField}
                   autoCapitalize="words"
                   icon="person-outline"
+                  error={fieldErrors.firstName}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -146,6 +176,7 @@ export default function SignUpScreen(): React.JSX.Element {
                   focusedField={focusedField}
                   autoCapitalize="words"
                   icon="person-outline"
+                  error={fieldErrors.lastName}
                 />
               </View>
             </View>
@@ -162,6 +193,7 @@ export default function SignUpScreen(): React.JSX.Element {
               focusedField={focusedField}
               keyboardType="email-address"
               icon="mail-outline"
+              error={fieldErrors.email}
             />
 
             {/* Password Field */}
@@ -179,6 +211,7 @@ export default function SignUpScreen(): React.JSX.Element {
               toggleState={showPassword}
               onToggle={() => setShowPassword(!showPassword)}
               icon="lock-closed-outline"
+              error={fieldErrors.password}
             />
 
             {/* Confirm Password Field */}
@@ -196,9 +229,10 @@ export default function SignUpScreen(): React.JSX.Element {
               toggleState={showConfirmPassword}
               onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
               icon="shield-checkmark-outline"
+              error={fieldErrors.confirmPassword}
             />
 
-            {/* Error Display */}
+            {/* Global Error Display */}
             <ErrorDisplay error={error} />
 
             {/* Submit Button */}
@@ -212,9 +246,10 @@ export default function SignUpScreen(): React.JSX.Element {
             <FooterLink
               message="Already have an account?"
               linkText="Sign In"
-              onPress={() => router.push("/(tabs)")}
+              onPress={handleSignIn}
             />
           </FormContainer>
+
           <Button
             title="Test Auth Store"
             onPress={async () => {

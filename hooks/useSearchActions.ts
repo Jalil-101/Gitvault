@@ -1,12 +1,12 @@
 // hooks/useSearchActions.ts
 import { useCallback } from "react";
+import { searchService } from "../services/searchService";
 import {
-  SearchResult,
-  RecentSearch,
   FilterOption,
+  RecentSearch,
+  SearchResult,
   SearchSuggestion,
 } from "../types/search";
-import { MOCK_SEARCH_RESULTS } from "../constants/search";
 
 interface UseSearchActionsProps {
   setIsLoading: (loading: boolean) => void;
@@ -44,17 +44,22 @@ export const useSearchActions = ({
         ...prev.filter((s) => s.query !== query.trim()).slice(0, 9),
       ]);
 
-      // Simulate API call
-      setTimeout(() => {
-        const filteredResults = MOCK_SEARCH_RESULTS.filter(
-          (result) =>
-            result.title.toLowerCase().includes(query.toLowerCase()) ||
-            result.description?.toLowerCase().includes(query.toLowerCase()) ||
-            result.subtitle?.toLowerCase().includes(query.toLowerCase())
+      try {
+        // Get active filters
+        const activeFilters = ["all"]; // Default to all for now
+
+        // Perform search using the new service
+        const results = await searchService.performSearch(
+          query.trim(),
+          activeFilters
         );
-        setSearchResults(filteredResults);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search error:", error);
+        setSearchResults([]);
+      } finally {
         setIsLoading(false);
-      }, 800);
+      }
     },
     [setIsLoading, setSearchResults, setRecentSearches]
   );
@@ -94,7 +99,19 @@ export const useSearchActions = ({
 
   const handleResultPress = useCallback((item: SearchResult) => {
     console.log("Navigate to:", item.title);
-    // TODO: Implement navigation logic
+
+    // Handle navigation based on result type
+    if (item.type === "repository") {
+      // Navigate to repository detail
+      // You can implement navigation logic here
+      console.log("Navigate to repository:", item.title);
+    } else if (item.type === "user") {
+      // Navigate to user profile
+      console.log("Navigate to user:", item.title);
+    } else if (item.type === "topic") {
+      // Navigate to topic search
+      console.log("Navigate to topic:", item.text);
+    }
   }, []);
 
   const handleRemoveRecentSearch = useCallback(

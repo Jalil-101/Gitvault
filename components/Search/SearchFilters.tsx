@@ -1,8 +1,8 @@
 // components/search/SearchFilters.tsx
-import React from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
-import { useModernTheme } from "@/context/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
+import { useModernTheme } from "@/context/ThemeContext";
+import React from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface FilterOption {
   id: string;
@@ -19,40 +19,70 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
   filters,
   onFilterPress,
 }) => {
-  const { colors, isDarkTheme } = useModernTheme();
+  const { colors, shadows } = useModernTheme();
+
+  const styles = StyleSheet.create({
+    container: {
+      marginBottom: 20,
+    },
+    scrollView: {
+      flexDirection: "row",
+    },
+    filterButton: {
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: 22,
+      marginRight: 14,
+      ...shadows.sm,
+    },
+    filterButtonActive: {
+      backgroundColor: colors.interactive.primary,
+      borderWidth: 1.5,
+      borderColor: colors.interactive.primary,
+    },
+    filterButtonInactive: {
+      backgroundColor: colors.surface.secondary,
+      borderWidth: 1.5,
+      borderColor: colors.border.secondary,
+    },
+    filterText: {
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    filterTextActive: {
+      color: colors.text.inverse,
+    },
+    filterTextInactive: {
+      color: colors.text.secondary,
+    },
+  });
 
   return (
-    <View className="mb-4">
+    <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
-        className="flex-row"
+        contentContainerStyle={{ paddingHorizontal: 20 }}
+        style={styles.scrollView}
       >
-        {filters.map((filter, index) => (
+        {filters.map((filter) => (
           <TouchableOpacity
             key={filter.id}
             onPress={() => onFilterPress(filter.id)}
-            className={`px-4 py-2 rounded-full mr-3 ${
+            style={[
+              styles.filterButton,
               filter.active
-                ? isDarkTheme
-                  ? "bg-modern-dark-interactive-primary"
-                  : "bg-modern-light-interactive-primary"
-                : isDarkTheme
-                ? "bg-modern-dark-surface-secondary"
-                : "bg-modern-light-surface-secondary"
-            }`}
+                ? styles.filterButtonActive
+                : styles.filterButtonInactive,
+            ]}
           >
             <ThemedText
-              className={`text-sm font-medium ${
+              style={[
+                styles.filterText,
                 filter.active
-                  ? isDarkTheme
-                    ? "text-modern-dark-text-inverse"
-                    : "text-modern-light-text-inverse"
-                  : isDarkTheme
-                  ? "text-modern-dark-text-secondary"
-                  : "text-modern-light-text-secondary"
-              }`}
+                  ? styles.filterTextActive
+                  : styles.filterTextInactive,
+              ]}
             >
               {filter.label}
             </ThemedText>

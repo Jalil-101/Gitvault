@@ -1,6 +1,6 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // components/notifications/NotificationHeader.tsx
@@ -20,64 +20,81 @@ export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
 
   return (
     <View
-      className="flex-row items-center justify-between px-4 py-4"
-      style={{
-        paddingTop: insets.top + 16, // Add safe area top + extra spacing
-      }}
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top + 16,
+        },
+      ]}
     >
       <View>
-        <Text
-          className={`text-2xl font-bold ${
-            isDarkTheme
-              ? "text-modern-dark-text-primary"
-              : "text-modern-light-text-primary"
-          }`}
-        >
+        <Text style={[styles.title, { color: colors.text.primary }]}>
           Notifications
         </Text>
         {unreadCount > 0 && (
-          <Text
-            className={`text-sm ${
-              isDarkTheme
-                ? "text-modern-dark-text-secondary"
-                : "text-modern-light-text-secondary"
-            }`}
-          >
+          <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
             {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
           </Text>
         )}
       </View>
 
-      <View className="flex-row items-center">
+      <View style={styles.actions}>
         {unreadCount > 0 && (
           <TouchableOpacity
             onPress={onMarkAllAsRead}
-            className={`px-3 py-2 rounded-lg mr-3 ${
-              isDarkTheme
-                ? "bg-modern-dark-surface-secondary"
-                : "bg-modern-light-surface-secondary"
-            }`}
+            style={[
+              styles.markAllButton,
+              { backgroundColor: colors.surface.secondary },
+            ]}
           >
-            <Text
-              className={`text-sm font-medium ${
-                isDarkTheme
-                  ? "text-modern-dark-text-primary"
-                  : "text-modern-light-text-primary"
-              }`}
-            >
+            <Text style={[styles.markAllText, { color: colors.text.primary }]}>
               Mark all read
             </Text>
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity onPress={onSettings} className="p-2">
+        <TouchableOpacity onPress={onSettings} style={styles.settingsButton}>
           <Ionicons
             name="settings-outline"
             size={24}
-            color={isDarkTheme ? colors.text.secondary : colors.text.primary}
+            color={colors.text.secondary}
           />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 14,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  markAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  markAllText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  settingsButton: {
+    padding: 8,
+  },
+});

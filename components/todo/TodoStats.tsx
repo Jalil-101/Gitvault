@@ -1,88 +1,235 @@
 // components/TodoStats.tsx
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
 import { Todo } from "@/types/todo";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
+import React from "react";
+import { Text, View } from "react-native";
 
 interface TodoStatsProps {
   todos: Todo[];
 }
 
 const TodoStats: React.FC<TodoStatsProps> = ({ todos }) => {
-  const { colors } = useModernThemeColor();
-  const shadows = {
-    sm: {
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 1,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.41,
-      elevation: 2,
-    },
-  }; // Define a default shadows object if it is not returned from the hook
+  const { colors, shadows } = useModernTheme();
 
-  const completedCount = todos.filter((t) => t.completed).length;
-  const pendingCount = todos.filter((t) => !t.completed).length;
+  const totalTodos = todos.length;
+  const completedTodos = todos.filter((todo) => todo.completed).length;
+  const pendingTodos = totalTodos - completedTodos;
+  const completionRate =
+    totalTodos > 0 ? Math.round((completedTodos / totalTodos) * 100) : 0;
 
-  const cardStyle = {
-    backgroundColor: colors.surface.primary,
-    borderColor: colors.border.primary,
-    ...shadows.sm,
+  const getPriorityCount = (priority: Todo["priority"]) => {
+    return todos.filter((todo) => todo.priority === priority).length;
   };
 
+  const highPriorityCount = getPriorityCount("high");
+  const mediumPriorityCount = getPriorityCount("medium");
+  const lowPriorityCount = getPriorityCount("low");
+
   return (
-    <View style={styles.statsContainer}>
-      <View style={[styles.statCard, cardStyle]}>
-        <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-          Total
-        </Text>
-        <Text style={[styles.statValue, { color: colors.text.primary }]}>
-          {todos.length}
-        </Text>
+    <View
+      style={{
+        backgroundColor: colors.surface.primary,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: colors.border.primary,
+        ...shadows.sm,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: "bold",
+          color: colors.text.primary,
+          marginBottom: 16,
+        }}
+      >
+        Overview
+      </Text>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colors.text.primary,
+            }}
+          >
+            {totalTodos}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.text.secondary,
+              textAlign: "center",
+            }}
+          >
+            Total
+          </Text>
+        </View>
+
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colors.status.success.main,
+            }}
+          >
+            {completedTodos}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.text.secondary,
+              textAlign: "center",
+            }}
+          >
+            Completed
+          </Text>
+        </View>
+
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colors.status.warning.main,
+            }}
+          >
+            {pendingTodos}
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.text.secondary,
+              textAlign: "center",
+            }}
+          >
+            Pending
+          </Text>
+        </View>
+
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "bold",
+              color: colors.accents.blue.main,
+            }}
+          >
+            {completionRate}%
+          </Text>
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.text.secondary,
+              textAlign: "center",
+            }}
+          >
+            Done
+          </Text>
+        </View>
       </View>
 
-      <View style={[styles.statCard, cardStyle]}>
-        <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-          Completed
+      <View
+        style={{
+          borderTopWidth: 1,
+          borderTopColor: colors.border.tertiary,
+          paddingTop: 16,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: colors.text.primary,
+            marginBottom: 8,
+          }}
+        >
+          Priority Breakdown
         </Text>
-        <Text style={[styles.statValue, { color: colors.status.success.main }]}>
-          {completedCount}
-        </Text>
-      </View>
 
-      <View style={[styles.statCard, cardStyle]}>
-        <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-          Pending
-        </Text>
-        <Text style={[styles.statValue, { color: colors.status.warning.main }]}>
-          {pendingCount}
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={{ alignItems: "center", flex: 1 }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: colors.status.error.main,
+                marginBottom: 4,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.text.secondary,
+                textAlign: "center",
+              }}
+            >
+              High ({highPriorityCount})
+            </Text>
+          </View>
+
+          <View style={{ alignItems: "center", flex: 1 }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: colors.status.warning.main,
+                marginBottom: 4,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.text.secondary,
+                textAlign: "center",
+              }}
+            >
+              Medium ({mediumPriorityCount})
+            </Text>
+          </View>
+
+          <View style={{ alignItems: "center", flex: 1 }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: colors.status.success.main,
+                marginBottom: 4,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.text.secondary,
+                textAlign: "center",
+              }}
+            >
+              Low ({lowPriorityCount})
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  statsContainer: {
-    flexDirection: "row",
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginRight: 8,
-    borderWidth: 1,
-  },
-  statLabel: {
-    fontSize: 14,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-});
 
 export default TodoStats;

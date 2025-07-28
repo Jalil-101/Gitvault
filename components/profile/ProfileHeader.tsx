@@ -3,13 +3,7 @@ import { useModernTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/store/authStore";
 import { UserProfile } from "@/types/profile";
 import { Link } from "expo-router";
-import {
-  Bell,
-  Building,
-  Calendar,
-  MapPin,
-  Settings,
-} from "lucide-react-native";
+import { Bell, Calendar, Settings } from "lucide-react-native";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -32,36 +26,42 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   const { colors } = useModernTheme();
   const authUser = useAuthStore((state) => state.user);
 
-  // Compose name: prefer authUser first/last, fallback to displayName
-  const fullName =
-    authUser && (authUser.firstName || authUser.lastName)
-      ? `${authUser.firstName || ""}${
-          authUser.lastName ? ` ${authUser.lastName}` : ""
-        }`.trim()
-      : "";
-  const email = authUser?.email || "";
+  // Use the same image as DashboardHeader
+  const profileImageUrl =
+    "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=";
+
+  // Function to get actual join date
+  const getJoinDate = () => {
+    // Try to get from auth store first (if user has signup date)
+    if (authUser) {
+      // For now, we'll use a fallback since auth store doesn't store signup date
+      // In a real app, you'd get this from the user's profile data
+      return "January 2024"; // Placeholder - replace with actual logic
+    }
+    return joinedDate || "January 2024"; // Fallback to prop or default
+  };
 
   return (
     <View className="px-6 pt-4 pb-6">
-      {/* Top Actions */}
-      <View className="flex-row justify-end mb-4">
+      {/* Top Actions - Slightly reduced size */}
+      <View className="flex-row justify-end mb-6">
         <TouchableOpacity
           onPress={onNotificationPress}
-          className="p-3 rounded-full mr-2"
+          className="p-4 rounded-full mr-4"
           style={{ backgroundColor: colors.surface.secondary }}
         >
           <Link href="/screens/SearchScreen">
-            <Bell size={20} color={colors.text.primary} />
+            <Bell size={24} color={colors.text.primary} />
           </Link>
         </TouchableOpacity>
 
         <TouchableOpacity
-          // onPress={onSettingsPress}
-          className="p-3 rounded-full"
+          onPress={onSettingsPress}
+          className="p-4 rounded-full"
           style={{ backgroundColor: colors.surface.secondary }}
         >
           <Link href="/screens/SettingsScreen">
-            <Settings size={20} color={colors.text.primary} />
+            <Settings size={24} color={colors.text.primary} />
           </Link>
         </TouchableOpacity>
       </View>
@@ -70,7 +70,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <View className="items-center mb-6">
         <View className="relative mb-4">
           <Image
-            source={{ uri: avatarUrl }}
+            source={{ uri: profileImageUrl }}
             className="w-24 h-24 rounded-full"
             style={{ backgroundColor: colors.surface.secondary }}
           />
@@ -85,77 +85,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </View>
         </View>
 
-        {fullName !== "" && (
+        {/* Show actual join date */}
+        <View className="flex-row items-center mb-4">
+          <Calendar size={18} color={colors.text.tertiary} />
           <Text
-            className="text-2xl font-bold mb-1"
-            style={{ color: colors.text.primary }}
-          >
-            {fullName}
-          </Text>
-        )}
-        {email !== "" && (
-          <Text
-            className="text-base mb-1"
+            className="text-base ml-2"
             style={{ color: colors.text.secondary }}
           >
-            {email}
+            Joined {getJoinDate()}
           </Text>
-        )}
-        {userName && (
-          <Text
-            className="text-base mb-4"
-            style={{ color: colors.text.secondary }}
-          >
-            @{userName}
-          </Text>
-        )}
-
-        {bio && (
-          <Text
-            className="text-center text-base leading-6 mb-4 px-4"
-            style={{ color: colors.text.primary }}
-          >
-            {bio}
-          </Text>
-        )}
-
-        {/* Meta Info */}
-        <View className="flex-row items-center justify-center flex-wrap">
-          {company && (
-            <View className="flex-row items-center mr-4 mb-2">
-              <Building size={16} color={colors.text.tertiary} />
-              <Text
-                className="text-sm ml-2"
-                style={{ color: colors.text.secondary }}
-              >
-                {company}
-              </Text>
-            </View>
-          )}
-
-          {location && (
-            <View className="flex-row items-center mr-4 mb-2">
-              <MapPin size={16} color={colors.text.tertiary} />
-              <Text
-                className="text-sm ml-2"
-                style={{ color: colors.text.secondary }}
-              >
-                {location}
-              </Text>
-            </View>
-          )}
-
-          {joinedDate && (
-            <View className="flex-row items-center mb-2">
-              <Calendar size={16} color={colors.text.tertiary} />
-              <Text
-                className="text-sm ml-2"
-                style={{ color: colors.text.secondary }}
-              >
-                Joined {joinedDate}
-              </Text>
-            </View>
-          )}
         </View>
       </View>
     </View>

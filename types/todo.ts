@@ -5,8 +5,11 @@ export interface Todo {
   description?: string;
   completed: boolean;
   createdAt: Date;
+  updatedAt?: Date;
   dueDate?: Date;
+  deadline?: Date; // New field for deadline
   priority: "low" | "medium" | "high";
-    notificationId?: string;
- 
+  notificationId?: string;
+  notificationIds?: string[]; // Array to track multiple notifications
+  lastNotificationDate?: Date; // Track when last notification was sent
 }

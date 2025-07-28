@@ -1,124 +1,80 @@
 // components/PrioritySelector.tsx
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Todo } from "@/types/todo";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
 
 interface PrioritySelectorProps {
-  selectedPriority: Todo["priority"];
-  onPriorityChange: (priority: Todo["priority"]) => void;
+  selectedPriority: "low" | "medium" | "high";
+  onPriorityChange: (priority: "low" | "medium" | "high") => void;
 }
 
 const PrioritySelector: React.FC<PrioritySelectorProps> = ({
   selectedPriority,
   onPriorityChange,
 }) => {
-  const { colors } = useModernThemeColor();
+  const { colors, shadows } = useModernTheme();
 
-  const getPriorityButtonStyle = (
-    priority: Todo["priority"],
-    isSelected: boolean
-  ) => {
-    const baseStyle = {
-      flex: 1,
-      padding: 12,
-      borderRadius: 8,
-      marginRight: 8,
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
-    };
-
-    if (isSelected) {
-      switch (priority) {
-        case "high":
-          return {
-            ...baseStyle,
-            backgroundColor: colors.status.error.main,
-          };
-        case "medium":
-          return {
-            ...baseStyle,
-            backgroundColor: colors.status.warning.main,
-          };
-        case "low":
-          return {
-            ...baseStyle,
-            backgroundColor: colors.status.success.main,
-          };
-        default:
-          return {
-            ...baseStyle,
-            backgroundColor: colors.interactive.secondary,
-          };
-      }
-    } else {
-      return {
-        ...baseStyle,
-        backgroundColor: colors.interactive.secondary,
-      };
-    }
-  };
-
-  const getPriorityButtonTextColor = (
-    priority: Todo["priority"],
-    isSelected: boolean
-  ) => {
-    if (isSelected) {
-      return colors.text.inverse;
-    } else {
-      return colors.text.secondary;
-    }
-  };
+  const priorities = [
+    { key: "low", label: "Low", color: colors.status.success.main },
+    { key: "medium", label: "Medium", color: colors.status.warning.main },
+    { key: "high", label: "High", color: colors.status.error.main },
+  ] as const;
 
   return (
-    <View>
-      <Text style={[styles.priorityLabel, { color: colors.text.primary }]}>
-        Priority
-      </Text>
-      <View style={styles.priorityContainer}>
-        {(["low", "medium", "high"] as const).map((priority) => (
-          <TouchableOpacity
-            key={priority}
-            style={getPriorityButtonStyle(
-              priority,
-              selectedPriority === priority
-            )}
-            onPress={() => onPriorityChange(priority)}
+    <View
+      style={{
+        flexDirection: "row",
+        gap: 8,
+        marginBottom: 20,
+      }}
+    >
+      {priorities.map((priority) => (
+        <TouchableOpacity
+          key={priority.key}
+          style={{
+            flex: 1,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor:
+              selectedPriority === priority.key
+                ? priority.color
+                : colors.border.secondary,
+            backgroundColor:
+              selectedPriority === priority.key
+                ? priority.color + "20"
+                : colors.surface.secondary,
+            alignItems: "center",
+            ...shadows.sm,
+          }}
+          onPress={() => onPriorityChange(priority.key)}
+        >
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: priority.color,
+              marginBottom: 4,
+            }}
+          />
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color:
+                selectedPriority === priority.key
+                  ? priority.color
+                  : colors.text.secondary,
+            }}
           >
-            <Text
-              style={[
-                styles.priorityButtonText,
-                {
-                  color: getPriorityButtonTextColor(
-                    priority,
-                    selectedPriority === priority
-                  ),
-                },
-              ]}
-            >
-              {priority.charAt(0).toUpperCase() + priority.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {priority.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  priorityLabel: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 12,
-  },
-  priorityContainer: {
-    flexDirection: "row",
-    marginBottom: 24,
-  },
-  priorityButtonText: {
-    textAlign: "center",
-    fontWeight: "600",
-  },
-});
 
 export default PrioritySelector;

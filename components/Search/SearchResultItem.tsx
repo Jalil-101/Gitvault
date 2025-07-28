@@ -1,9 +1,9 @@
 // components/search/SearchResultItem.tsx
-import React from "react";
-import { View, TouchableOpacity } from "react-native";
-import { Star, GitFork, Circle } from "lucide-react-native";
-import { useModernTheme } from "@/context/ThemeContext";
 import { ThemedText } from "@/components/ThemedText";
+import { useModernTheme } from "@/context/ThemeContext";
+import { GitFork, Globe, Lock, Star } from "lucide-react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 export interface SearchResult {
   id: string;
@@ -16,6 +16,8 @@ export interface SearchResult {
   forks?: number;
   avatar?: string;
   verified?: boolean;
+  isPrivate?: boolean;
+  ownerId?: string;
 }
 
 interface SearchResultItemProps {
@@ -27,7 +29,7 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({
   item,
   onPress,
 }) => {
-  const { colors, isDarkTheme } = useModernTheme();
+  const { colors, shadows } = useModernTheme();
 
   const getLanguageColor = (language: string) => {
     const languageColors: Record<string, string> = {
@@ -42,127 +44,174 @@ export const SearchResultItem: React.FC<SearchResultItemProps> = ({
     return languageColors[language] || colors.text.tertiary;
   };
 
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toString();
+  };
+
+  const styles = StyleSheet.create({
+    container: {
+      backgroundColor: colors.surface.secondary,
+      marginHorizontal: 20,
+      marginBottom: 16,
+      padding: 18,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: colors.border.secondary,
+      ...shadows.sm,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      marginBottom: 8,
+    },
+    titleContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text.primary,
+      marginRight: 8,
+    },
+    privacyIcon: {
+      marginLeft: 4,
+    },
+    verifiedBadge: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.interactive.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 8,
+    },
+    verifiedText: {
+      color: colors.text.inverse,
+      fontSize: 10,
+      fontWeight: "bold",
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.text.tertiary,
+      marginBottom: 8,
+    },
+    description: {
+      fontSize: 14,
+      color: colors.text.secondary,
+      lineHeight: 20,
+      marginBottom: 12,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    stats: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    stat: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: 16,
+    },
+    statText: {
+      fontSize: 12,
+      color: colors.text.tertiary,
+      marginLeft: 4,
+    },
+    languageContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    languageDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+      marginRight: 6,
+    },
+    languageText: {
+      fontSize: 12,
+      color: colors.text.tertiary,
+    },
+  });
+
   return (
-    <TouchableOpacity
-      onPress={() => onPress(item)}
-      className={`${
-        isDarkTheme
-          ? "bg-modern-dark-surface-secondary"
-          : "bg-modern-light-surface-secondary"
-      } mx-4 mb-3 p-4 rounded-2xl`}
-    >
-      <View className="flex-row items-start justify-between">
-        <View className="flex-1">
-          <View className="flex-row items-center mb-1">
-            <ThemedText
-              className={`${
-                isDarkTheme
-                  ? "text-modern-dark-text-primary"
-                  : "text-modern-light-text-primary"
-              } font-semibold text-base`}
-            >
-              {item.title}
-            </ThemedText>
-            {item.verified && (
-              <View
-                className={`ml-2 w-4 h-4 ${
-                  isDarkTheme
-                    ? "bg-modern-dark-interactive-primary"
-                    : "bg-modern-light-interactive-primary"
-                } rounded-full items-center justify-center`}
-              >
-                <ThemedText
-                  className={`${
-                    isDarkTheme
-                      ? "text-modern-dark-text-inverse"
-                      : "text-modern-light-text-inverse"
-                  } text-xs`}
-                >
-                  ✓
-                </ThemedText>
-              </View>
-            )}
-          </View>
+    <TouchableOpacity onPress={() => onPress(item)} style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <ThemedText style={styles.title} numberOfLines={1}>
+            {item.title}
+          </ThemedText>
 
-          {item.subtitle && (
-            <ThemedText
-              className={`${
-                isDarkTheme
-                  ? "text-modern-dark-text-tertiary"
-                  : "text-modern-light-text-tertiary"
-              } text-sm mb-2`}
-            >
-              {item.subtitle}
-            </ThemedText>
+          {/* Privacy indicator */}
+          {item.isPrivate !== undefined && (
+            <View style={styles.privacyIcon}>
+              {item.isPrivate ? (
+                <Lock size={14} color={colors.status.error.main} />
+              ) : (
+                <Globe size={14} color={colors.status.success.main} />
+              )}
+            </View>
           )}
 
-          {item.description && (
-            <ThemedText
-              className={`${
-                isDarkTheme
-                  ? "text-modern-dark-text-secondary"
-                  : "text-modern-light-text-secondary"
-              } text-sm mb-3 leading-5`}
-            >
-              {item.description}
-            </ThemedText>
+          {item.verified && (
+            <View style={styles.verifiedBadge}>
+              <ThemedText style={styles.verifiedText}>✓</ThemedText>
+            </View>
           )}
-
-          <View className="flex-row items-center">
-            {item.language && (
-              <View className="flex-row items-center mr-4">
-                <Circle
-                  size={12}
-                  fill={getLanguageColor(item.language)}
-                  color={getLanguageColor(item.language)}
-                />
-                <ThemedText
-                  className={`${
-                    isDarkTheme
-                      ? "text-modern-dark-text-tertiary"
-                      : "text-modern-light-text-tertiary"
-                  } text-sm ml-1`}
-                >
-                  {item.language}
-                </ThemedText>
-              </View>
-            )}
-
-            {item.stars !== undefined && (
-              <View className="flex-row items-center mr-4">
-                <Star size={14} color={colors.text.tertiary} />
-                <ThemedText
-                  className={`${
-                    isDarkTheme
-                      ? "text-modern-dark-text-tertiary"
-                      : "text-modern-light-text-tertiary"
-                  } text-sm ml-1`}
-                >
-                  {item.stars > 1000
-                    ? `${(item.stars / 1000).toFixed(1)}k`
-                    : item.stars}
-                </ThemedText>
-              </View>
-            )}
-
-            {item.forks !== undefined && (
-              <View className="flex-row items-center">
-                <GitFork size={14} color={colors.text.tertiary} />
-                <ThemedText
-                  className={`${
-                    isDarkTheme
-                      ? "text-modern-dark-text-tertiary"
-                      : "text-modern-light-text-tertiary"
-                  } text-sm ml-1`}
-                >
-                  {item.forks > 1000
-                    ? `${(item.forks / 1000).toFixed(1)}k`
-                    : item.forks}
-                </ThemedText>
-              </View>
-            )}
-          </View>
         </View>
+      </View>
+
+      {item.subtitle && (
+        <ThemedText style={styles.subtitle} numberOfLines={1}>
+          {item.subtitle}
+        </ThemedText>
+      )}
+
+      {item.description && (
+        <ThemedText style={styles.description} numberOfLines={2}>
+          {item.description}
+        </ThemedText>
+      )}
+
+      <View style={styles.footer}>
+        <View style={styles.stats}>
+          {item.stars !== undefined && (
+            <View style={styles.stat}>
+              <Star size={14} color={colors.text.tertiary} />
+              <ThemedText style={styles.statText}>
+                {formatNumber(item.stars)}
+              </ThemedText>
+            </View>
+          )}
+
+          {item.forks !== undefined && (
+            <View style={styles.stat}>
+              <GitFork size={14} color={colors.text.tertiary} />
+              <ThemedText style={styles.statText}>
+                {formatNumber(item.forks)}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+
+        {item.language && (
+          <View style={styles.languageContainer}>
+            <View
+              style={[
+                styles.languageDot,
+                { backgroundColor: getLanguageColor(item.language) },
+              ]}
+            />
+            <ThemedText style={styles.languageText}>{item.language}</ThemedText>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );

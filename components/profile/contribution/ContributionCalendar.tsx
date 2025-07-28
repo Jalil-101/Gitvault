@@ -1,12 +1,12 @@
 // components/explore/ContributionCalendar.tsx
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { ContributionDay } from "@/types/contribution";
 import {
-  getContributionLevelColor,
   getContributionLevelBorderColor,
+  getContributionLevelColor,
 } from "@/utils/contributions/contributionColor";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ContributionCalendarProps {
   monthContributions: ContributionDay[];
@@ -25,6 +25,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
     if (monthContributions.length === 0) return [];
 
     const firstDay = new Date(monthContributions[0].date);
+    const today = new Date();
 
     // Get first day of month and its day of week
     const firstDayOfMonth = new Date(
@@ -82,6 +83,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
   }
 
   const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const today = new Date();
 
   return (
     <View
@@ -120,38 +122,60 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
       <View>
         {weeks.map((week, weekIndex) => (
           <View key={weekIndex} className="flex-row justify-between mb-2">
-            {week.map((day, dayIndex) => (
-              <TouchableOpacity
-                key={`${weekIndex}-${dayIndex}`}
-                onPress={() => day && onDayPress(day)}
-                className="rounded-lg items-center justify-center"
-                style={{
-                  width: 36,
-                  height: 36,
-                  backgroundColor: day
-                    ? getContributionLevelColor(day.level, colors.text.tertiary)
-                    : "transparent",
-                  borderWidth: day ? 1.5 : 0,
-                  borderColor: day
-                    ? getContributionLevelBorderColor(
-                        day.level,
-                        colors.text.tertiary
-                      )
-                    : "transparent",
-                }}
-              >
-                {day && (
+            {week.map((day, dayIndex) => {
+              if (!day) {
+                return (
+                  <View
+                    key={`${weekIndex}-${dayIndex}`}
+                    className="rounded-lg items-center justify-center"
+                    style={{
+                      width: 36,
+                      height: 36,
+                    }}
+                  />
+                );
+              }
+
+              const dayDate = new Date(day.date);
+              const isFuture = dayDate > today;
+              const isToday = dayDate.toDateString() === today.toDateString();
+
+              return (
+                <TouchableOpacity
+                  key={`${weekIndex}-${dayIndex}`}
+                  onPress={() => onDayPress(day)}
+                  className="rounded-lg items-center justify-center"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    backgroundColor: getContributionLevelColor(
+                      day.level,
+                      colors.text.tertiary,
+                      isFuture
+                    ),
+                    borderWidth: day.level > 0 || isFuture ? 1.5 : 0,
+                    borderColor: getContributionLevelBorderColor(
+                      day.level,
+                      colors.text.tertiary,
+                      isFuture
+                    ),
+                  }}
+                >
                   <Text
                     className="text-xs font-semibold"
                     style={{
-                      color: day.level > 0 ? "#FFFFFF" : colors.text.tertiary,
+                      color: isFuture
+                        ? "#6B7280"
+                        : day.level > 0
+                        ? "#FFFFFF"
+                        : colors.text.tertiary,
                     }}
                   >
-                    {new Date(day.date).getDate()}
+                    {dayDate.getDate()}
                   </Text>
-                )}
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         ))}
       </View>
@@ -171,7 +195,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
           Less
         </Text>
         <View className="flex-row items-center">
-          {[0, 1, 2, 3, 4].map((level) => (
+          {[0, 1, 2, 3].map((level) => (
             <View
               key={level}
               className="rounded-md mx-1"

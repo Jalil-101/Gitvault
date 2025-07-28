@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Alert } from "react-native";
+import { useModernTheme } from "@/context/ThemeContext";
 import { useTodoStore } from "@/store/todoStore";
 import { Todo } from "@/types/todo";
 import { requestNotificationPermissions } from "@/utils/appnotifications";
-import { useModernThemeColor } from "@/hooks/useThemeColor";
+import React, { useEffect, useState } from "react";
+import { Alert, FlatList, Text, View } from "react-native";
+import AddTodoModal from "./AddTodoModal";
+import NotificationTestButton from "./NotificationTestButton";
+import TodoHeader from "./TodoHeader";
 import TodoItem from "./TodoItem";
 import TodoStats from "./TodoStats";
-import TodoHeader from "./TodoHeader";
-import AddTodoModal from "./AddTodoModal";
 
 const TodoList: React.FC = () => {
   const { todos, isLoading, addTodo, deleteTodo, toggleTodo, loadTodos } =
     useTodoStore();
 
-  const { colors } = useModernThemeColor();
+  const { colors } = useModernTheme();
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
@@ -46,7 +47,6 @@ const TodoList: React.FC = () => {
           flex: 1,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: colors.background.primary,
         }}
       >
         <Text
@@ -65,12 +65,14 @@ const TodoList: React.FC = () => {
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.background.primary,
         padding: 16,
       }}
     >
       <TodoHeader onAddPress={() => setShowAddModal(true)} />
       <TodoStats todos={todos} />
+
+      {/* Notification Test Button */}
+      <NotificationTestButton />
 
       <FlatList
         data={todos}
@@ -98,9 +100,11 @@ const TodoList: React.FC = () => {
               style={{
                 color: colors.text.quaternary,
                 marginTop: 8,
+                fontSize: 14,
+                textAlign: "center",
               }}
             >
-              Tap + to add your first todo
+              Create your first todo to get started
             </Text>
           </View>
         }

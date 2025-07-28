@@ -1,8 +1,8 @@
 // components/notifications/NotificationsList.tsx
-import React from "react";
-import { ScrollView, View, Text } from "react-native";
 import { useModernTheme } from "@/context/ThemeContext";
-import { NotificationItem, NotificationData } from "./NotificationItem";
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { NotificationData, NotificationItem } from "./NotificationItem";
 
 interface NotificationsListProps {
   notifications: NotificationData[];
@@ -17,38 +17,26 @@ export const NotificationsList: React.FC<NotificationsListProps> = ({
   onMarkAsRead,
   title = "Notifications",
 }) => {
-  const { colors, isDarkTheme } = useModernTheme() as unknown as { colors: { modern: any }; isDarkTheme: boolean };
+  const { colors, isDarkTheme } = useModernTheme();
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <View className="flex-1">
+    <View style={styles.container}>
       {/* Header */}
       <View
-        className="px-4 py-3 border-b border-opacity-10"
-        style={{
-          borderBottomColor: isDarkTheme
-            ? colors.modern.dark.text.muted
-            : colors.modern.light.text.muted,
-        }}
+        style={[
+          styles.header,
+          {
+            borderBottomColor: colors.border.tertiary,
+          },
+        ]}
       >
-        <Text
-          className={`text-xl font-bold ${
-            isDarkTheme
-              ? "text-modern-dark-text-primary"
-              : "text-modern-light-text-primary"
-          }`}
-        >
+        <Text style={[styles.title, { color: colors.text.primary }]}>
           {title}
         </Text>
         {unreadCount > 0 && (
-          <Text
-            className={`text-sm mt-1 ${
-              isDarkTheme
-                ? "text-modern-dark-text-secondary"
-                : "text-modern-light-text-secondary"
-            }`}
-          >
+          <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
             {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
           </Text>
         )}
@@ -56,13 +44,9 @@ export const NotificationsList: React.FC<NotificationsListProps> = ({
 
       {/* Scrollable Notifications */}
       <ScrollView
-        className="flex-1"
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: 16,
-          paddingBottom: 100,
-        
-        }}
+        contentContainerStyle={styles.scrollContent}
       >
         {notifications.length > 0 ? (
           notifications.map((notification) => (
@@ -74,14 +58,8 @@ export const NotificationsList: React.FC<NotificationsListProps> = ({
             />
           ))
         ) : (
-          <View className="flex items-center justify-center py-16">
-            <Text
-              className={`text-base ${
-                isDarkTheme
-                  ? "text-modern-dark-text-muted"
-                  : "text-modern-light-text-muted"
-              }`}
-            >
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>
               No notifications yet
             </Text>
           </View>
@@ -90,3 +68,38 @@ export const NotificationsList: React.FC<NotificationsListProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 16,
+    paddingBottom: 100,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 64,
+  },
+  emptyText: {
+    fontSize: 16,
+  },
+});
