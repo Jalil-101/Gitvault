@@ -21,6 +21,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Speech from "expo-speech";
 import * as ImagePicker from "expo-image-picker";
+import Constants from "expo-constants";
+import { useGamification, useAwardXpWithCongrats } from "../gamification";
 
 // Custom Icon Components
 const QuizIcon = () => (
@@ -345,13 +347,45 @@ interface VaultAIChatScreenProps {
   };
 }
 
+const quizConcepts: string[] = [
+  "GitHub Commits",
+  "React Basics",
+  "TypeScript",
+  "JavaScript Functions",
+  "Version Control",
+];
+
 const VaultAIChatScreen: React.FC<VaultAIChatScreenProps> = ({
-  apiKey = "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",
+  apiKey = Constants.expoConfig?.extra?.openrouterApiKey,
   onClose,
   initialContext,
   currentBranch = "main",
   repoStats,
 }) => {
+  if (!apiKey) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#1a1a1a",
+        }}
+      >
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 18,
+            textAlign: "center",
+            margin: 20,
+          }}
+        >
+          ❌ No OpenRouter API key found. Please set OPENROUTER_API_KEY in your
+          environment.
+        </Text>
+      </View>
+    );
+  }
   // Speech-to-text API key
   const speechApiKey = "4569cbe2e0f24bf084730fc2cd4d8532";
   const [messages, setMessages] = useState<Message[]>([]);
@@ -455,6 +489,7 @@ const VaultAIChatScreen: React.FC<VaultAIChatScreenProps> = ({
   // Add image upload state after other state declarations:
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageUploadEnabled, setImageUploadEnabled] = useState(true);
+  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -611,69 +646,39 @@ const VaultAIChatScreen: React.FC<VaultAIChatScreenProps> = ({
     }
   };
 
+  const shuffleArray = (array: any[]) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  const fetchOnlineQuestions = async () => {
+    const response = await fetch(
+      "https://opentdb.com/api.php?amount=30&category=18&type=multiple"
+    );
+    const data = await response.json();
+    const questions = data.results.map((q: any) => ({
+      question: q.question,
+      options: shuffleArray([q.correct_answer, ...q.incorrect_answers]),
+      correctAnswer: q.correct_answer,
+      explanation: "", // Open Trivia DB does not provide explanations
+    }));
+    setQuizQuestions(questions);
+    setCurrentQuestionIndex(0);
+    setUserAnswers([]);
+    setQuizResults(null);
+  };
+
   // Add function to generate quiz questions using AI:
   const generateQuizQuestions = async () => {
     setIsGeneratingQuiz(true);
     try {
-      // Get recent chat messages for context
-      const recentMessages = messages
-        .slice(-5)
-        .map((msg) => msg.text)
-        .join("\n");
-
-      const quizPrompt = `Based on this conversation context, generate 3 multiple-choice quiz questions to test understanding. 
-      Format each question as JSON:
-      {
-        "question": "Question text here?",
-        "options": ["A", "B", "C", "D"],
-        "correctAnswer": "A",
-        "explanation": "Why this is correct"
-      }
-      
-      Context: ${recentMessages}
-      
-      Return only valid JSON array with 3 questions.`;
-
-      const response = await callOpenRouterAPI(quizPrompt, []);
-
-      try {
-        const questions = JSON.parse(response);
-        setQuizQuestions(questions);
-        setCurrentQuestionIndex(0);
-        setUserAnswers([]);
-        setQuizResults(null);
-      } catch (parseError) {
-        // If AI response isn't valid JSON, create a fallback quiz
-        setQuizQuestions([
-          {
-            question: "What is the main purpose of this AI assistant?",
-            options: [
-              "Code generation",
-              "General chat",
-              "Development assistance",
-              "All of the above",
-            ],
-            correctAnswer: "Development assistance",
-            explanation: "This AI is designed to help with development tasks.",
-          },
-        ]);
-      }
+      await fetchOnlineQuestions();
     } catch (error) {
-      console.error("Error generating quiz:", error);
-      // Fallback quiz
-      setQuizQuestions([
-        {
-          question: "What is the main purpose of this AI assistant?",
-          options: [
-            "Code generation",
-            "General chat",
-            "Development assistance",
-            "All of the above",
-          ],
-          correctAnswer: "Development assistance",
-          explanation: "This AI is designed to help with development tasks.",
-        },
-      ]);
+      console.error("Error fetching online questions:", error);
+      // Optionally, fallback to AI or local questions
     } finally {
       setIsGeneratingQuiz(false);
     }
@@ -708,7 +713,8 @@ const VaultAIChatScreen: React.FC<VaultAIChatScreenProps> = ({
     setUserAnswers([]);
     setQuizResults(null);
     setQuizQuestions([]);
-    setShowQuizModal(false);
+    setSelectedConcept(null);
+    // Do NOT close the modal here
   };
 
   const handleSendMessage = async () => {
@@ -1311,6 +1317,27 @@ Please guide me on what specific information from this image would be most valua
     }
   };
 
+  const { completeChallenge } = useGamification();
+  const { showCongrats, awardXp } = useAwardXpWithCongrats();
+  const [modesTried, setModesTried] = useState<Set<string>>(new Set());
+
+  const handleModeChange = (mode: string) => {
+    setAiMode(mode as any);
+    setModesTried((prev) => {
+      const updated = new Set(prev);
+      updated.add(mode);
+      if (
+        ["chat", "analysis", "commit", "review", "voice"].every((m) =>
+          updated.has(m)
+        )
+      ) {
+        completeChallenge("weekly-modes");
+        awardXp(50); // or whatever XP you want
+      }
+      return updated;
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.purpleHeader}>
@@ -1350,29 +1377,30 @@ Please guide me on what specific information from this image would be most valua
             multiline
             maxLength={1000}
           />
-          <View style={styles.inputActions}>
-            <Text style={styles.charCount}>{inputText.length}/1000</Text>
-            {smartFeatures.voiceEnabled && renderVoiceButton()}
-            {imageUploadEnabled && (
-              <TouchableOpacity
-                style={styles.attachmentButton}
-                onPress={pickImage}
-                disabled={isLoading}
-              >
-                <AttachmentIcon />
-              </TouchableOpacity>
-            )}
+        </View>
+        {/* Move inputActions below the input field */}
+        <View style={styles.inputActionsRow}>
+          {smartFeatures.voiceEnabled && renderVoiceButton()}
+          {imageUploadEnabled && (
             <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSendMessage}
-              disabled={!inputText.trim() || isLoading}
+              style={styles.attachmentButton}
+              onPress={pickImage}
+              disabled={isLoading}
             >
-              {isLoading ? <LoadingIcon /> : <SendIcon />}
+              <AttachmentIcon />
             </TouchableOpacity>
-          </View>
+          )}
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              (!inputText.trim() || isLoading) && styles.sendButtonDisabled,
+            ]}
+            onPress={handleSendMessage}
+            disabled={!inputText.trim() || isLoading}
+          >
+            {isLoading ? <LoadingIcon /> : <SendIcon />}
+          </TouchableOpacity>
+          <Text style={styles.charCount}>{inputText.length}/1000</Text>
         </View>
       </View>
 
@@ -1381,7 +1409,7 @@ Please guide me on what specific information from this image would be most valua
         style={{
           position: "absolute",
           right: 85,
-          top: 37,
+          top: 35,
           zIndex: 30,
           backgroundColor: "#7c3aed",
           borderRadius: 16,
@@ -1474,68 +1502,250 @@ Please guide me on what specific information from this image would be most valua
                 </View>
               )}
 
-              {quizQuestions.length > 0 &&
+              {!selectedConcept &&
                 !isGeneratingQuiz &&
+                quizQuestions.length === 0 &&
                 !quizResults && (
-                  <View>
-                    <View
+                  <View style={{ marginBottom: 24 }}>
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: 20,
+                        color: "#fff",
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        marginBottom: 12,
+                        textAlign: "center",
                       }}
+                    >
+                      Select a quiz concept:
+                    </Text>
+                    {quizConcepts.map((concept: string) => (
+                      <TouchableOpacity
+                        key={concept}
+                        style={{
+                          backgroundColor:
+                            selectedConcept === concept ? "#7c3aed" : "#21262d",
+                          padding: 14,
+                          borderRadius: 10,
+                          marginBottom: 10,
+                          borderWidth: 1,
+                          borderColor:
+                            selectedConcept === concept ? "#7c3aed" : "#30363d",
+                        }}
+                        onPress={() => setSelectedConcept(concept)}
+                      >
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontSize: 16,
+                            textAlign: "center",
+                          }}
+                        >
+                          {concept}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: selectedConcept
+                          ? "#7c3aed"
+                          : "#30363d",
+                        padding: 14,
+                        borderRadius: 10,
+                        marginTop: 10,
+                        opacity: selectedConcept ? 1 : 0.5,
+                      }}
+                      disabled={!selectedConcept}
+                      onPress={generateQuizQuestions}
                     >
                       <Text
                         style={{
                           color: "#fff",
+                          fontSize: 16,
+                          textAlign: "center",
+                        }}
+                      >
+                        {selectedConcept
+                          ? `Start Quiz on ${selectedConcept}`
+                          : "Select a concept to start"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+              {quizQuestions.length > 0 &&
+                !isGeneratingQuiz &&
+                !quizResults && (
+                  <View>
+                    {/* Close button at the top right */}
+                    <TouchableOpacity
+                      onPress={() => setShowQuizModal(false)}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        padding: 12,
+                        zIndex: 100,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "#f85149",
                           fontSize: 18,
                           fontWeight: "bold",
                         }}
                       >
-                        Question {currentQuestionIndex + 1} of{" "}
-                        {quizQuestions.length}
+                        ✕ Close
                       </Text>
-                      <Text style={{ color: "#7c3aed", fontSize: 14 }}>
-                        {Math.round(
-                          ((currentQuestionIndex + 1) / quizQuestions.length) *
-                            100
-                        )}
-                        %
-                      </Text>
-                    </View>
-
-                    <Text
-                      style={{
-                        color: "#fff",
-                        fontSize: 16,
-                        marginBottom: 20,
-                        lineHeight: 24,
-                      }}
-                    >
-                      {quizQuestions[currentQuestionIndex].question}
-                    </Text>
-
-                    {quizQuestions[currentQuestionIndex].options.map(
-                      (option: string, index: number) => (
+                    </TouchableOpacity>
+                    <View style={{ paddingTop: 40 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 20,
+                        }}
+                      >
                         <TouchableOpacity
-                          key={index}
+                          onPress={() =>
+                            setCurrentQuestionIndex(
+                              Math.max(0, currentQuestionIndex - 1)
+                            )
+                          }
+                          disabled={currentQuestionIndex === 0}
                           style={{
-                            backgroundColor: "#21262d",
-                            padding: 16,
-                            borderRadius: 12,
-                            marginBottom: 12,
-                            borderWidth: 1,
-                            borderColor: "#30363d",
+                            opacity: currentQuestionIndex === 0 ? 0.3 : 1,
                           }}
-                          onPress={() => handleQuizAnswer(option)}
                         >
-                          <Text style={{ color: "#fff", fontSize: 16 }}>
-                            {String.fromCharCode(65 + index)}. {option}
+                          <Text style={{ color: "#fff", fontSize: 24 }}>
+                            {"<"}
                           </Text>
                         </TouchableOpacity>
-                      )
-                    )}
+                        <Text
+                          style={{
+                            color: "#fff",
+                            fontSize: 18,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Question {currentQuestionIndex + 1} of{" "}
+                          {quizQuestions.length}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() =>
+                            setCurrentQuestionIndex(
+                              Math.min(
+                                quizQuestions.length - 1,
+                                currentQuestionIndex + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            currentQuestionIndex === quizQuestions.length - 1
+                          }
+                          style={{
+                            opacity:
+                              currentQuestionIndex === quizQuestions.length - 1
+                                ? 0.3
+                                : 1,
+                          }}
+                        >
+                          <Text style={{ color: "#fff", fontSize: 24 }}>
+                            {">"}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                      <Text
+                        style={{
+                          color: "#fff",
+                          fontSize: 16,
+                          marginBottom: 20,
+                          lineHeight: 24,
+                        }}
+                      >
+                        {quizQuestions[currentQuestionIndex].question}
+                      </Text>
+                      {quizQuestions[currentQuestionIndex].options.map(
+                        (option: string, index: number) => {
+                          const answered =
+                            userAnswers[currentQuestionIndex] !== undefined;
+                          const isCorrect =
+                            answered &&
+                            option ===
+                              quizQuestions[currentQuestionIndex].correctAnswer;
+                          const isSelected =
+                            answered &&
+                            userAnswers[currentQuestionIndex] === option;
+                          return (
+                            <TouchableOpacity
+                              key={index}
+                              style={{
+                                backgroundColor: isSelected
+                                  ? isCorrect
+                                    ? "#22c55e"
+                                    : "#f85149"
+                                  : "#21262d",
+                                padding: 16,
+                                borderRadius: 12,
+                                marginBottom: 12,
+                                borderWidth: 1,
+                                borderColor: isSelected
+                                  ? isCorrect
+                                    ? "#22c55e"
+                                    : "#f85149"
+                                  : "#30363d",
+                                opacity: answered && !isSelected ? 0.6 : 1,
+                              }}
+                              onPress={() => {
+                                if (!answered) {
+                                  const newAnswers = [...userAnswers];
+                                  newAnswers[currentQuestionIndex] = option;
+                                  setUserAnswers(newAnswers);
+                                }
+                              }}
+                              disabled={answered}
+                            >
+                              <Text style={{ color: "#fff", fontSize: 16 }}>
+                                {String.fromCharCode(65 + index)}. {option}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        }
+                      )}
+                      {/* Feedback after answering */}
+                      {userAnswers[currentQuestionIndex] !== undefined && (
+                        <View style={{ marginTop: 10, marginBottom: 10 }}>
+                          <Text
+                            style={{
+                              color:
+                                userAnswers[currentQuestionIndex] ===
+                                quizQuestions[currentQuestionIndex]
+                                  .correctAnswer
+                                  ? "#22c55e"
+                                  : "#f85149",
+                              fontSize: 16,
+                              fontWeight: "bold",
+                              textAlign: "center",
+                            }}
+                          >
+                            {userAnswers[currentQuestionIndex] ===
+                            quizQuestions[currentQuestionIndex].correctAnswer
+                              ? "Correct!"
+                              : "Incorrect."}
+                          </Text>
+                          <Text
+                            style={{
+                              color: "#fff",
+                              fontSize: 14,
+                              marginTop: 6,
+                              textAlign: "center",
+                            }}
+                          >
+                            {quizQuestions[currentQuestionIndex].explanation}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 )}
 
@@ -1597,7 +1807,10 @@ Please guide me on what specific information from this image would be most valua
                         flex: 1,
                         marginRight: 8,
                       }}
-                      onPress={restartQuiz}
+                      onPress={async () => {
+                        restartQuiz();
+                        await generateQuizQuestions();
+                      }}
                     >
                       <Text
                         style={{
@@ -1646,6 +1859,30 @@ Please guide me on what specific information from this image would be most valua
                   </TouchableOpacity>
                 )}
             </View>
+          </View>
+        </Modal>
+      )}
+      {showCongrats && (
+        <Modal transparent visible={showCongrats} animationType="fade">
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.7)",
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 32,
+                fontWeight: "bold",
+                marginBottom: 20,
+              }}
+            >
+              🎉 Congratulations! +50 XP
+            </Text>
+            {/* You can add a Lottie animation or confetti here if desired */}
           </View>
         </Modal>
       )}
@@ -2030,6 +2267,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#30363d",
+  },
+  inputActionsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 8,
+    gap: 12,
   },
 });
 

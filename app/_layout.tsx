@@ -9,7 +9,7 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 // import NetInfo from "@react-native-async-storage/async-storage";
@@ -25,6 +25,10 @@ import { SplashWrapper } from "@/components/SplashWrapper";
 
 // Import NativeWind for Tailwind CSS support
 import "../global.css";
+
+// Import the GamificationProvider
+import { GamificationProvider } from "./gamification";
+import { ChallengesModal } from "./gamification";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -158,9 +162,40 @@ function AuthAwareNavigation() {
 
 // Themed layout component
 function ThemedLayout() {
+  const [showChallenges, setShowChallenges] = useState(false);
+  const segments = useSegments();
+  const inAuthOrOnboarding =
+    segments[0] === "auth" || segments[0] === "onboarding";
   return (
     <ThemeProvider value={createNavigationTheme(false)}>
       <AuthAwareNavigation />
+      {/* Floating Challenges Button (hide on auth/onboarding) */}
+      {!inAuthOrOnboarding && (
+        <>
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              bottom: 200,
+              right: 24,
+              backgroundColor: "#22c55e",
+              borderRadius: 24,
+              padding: 16,
+              elevation: 8,
+              zIndex: 100,
+            }}
+            onPress={() => setShowChallenges(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 18 }}>
+              🎯
+            </Text>
+          </TouchableOpacity>
+          <ChallengesModal
+            visible={showChallenges}
+            onClose={() => setShowChallenges(false)}
+          />
+        </>
+      )}
     </ThemeProvider>
   );
 }
@@ -221,12 +256,14 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ModernThemeProvider>
-        <SplashWrapper>
-          <ThemedLayout />
-        </SplashWrapper>
-      </ModernThemeProvider>
-    </GestureHandlerRootView>
+    <GamificationProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ModernThemeProvider>
+          <SplashWrapper>
+            <ThemedLayout />
+          </SplashWrapper>
+        </ModernThemeProvider>
+      </GestureHandlerRootView>
+    </GamificationProvider>
   );
 }
