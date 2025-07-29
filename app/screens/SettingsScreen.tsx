@@ -166,21 +166,21 @@ export default function SettingsScreen() {
             iconBackground={accentColors.blue.main}
             title="Language"
             value="English"
-            // onPress={() => router.push("/language")}
+            onPress={() => router.push("./LanguagesScreen")}
           />
           <SettingsItem
             icon="code-outline"
             iconBackground={accentColors.green.main}
             title="Code Editor"
             subtitle="Theme, font size, shortcuts"
-            // onPress={() => router.push("/editor-settings")}
+            onPress={() => router.push("./CodeEditorScreen")}
           />
           <SettingsItem
             icon="git-branch-outline"
             iconBackground={accentColors.orange.main}
             title="Git Configuration"
             subtitle="Default branch, merge strategy"
-            // onPress={() => router.push("/git-settings")}
+            onPress={() => router.push("./GitConfigScreen")}
             isLast={true}
           />
         </SettingsSection>
@@ -213,7 +213,7 @@ export default function SettingsScreen() {
             iconBackground={accentColors.purple.main}
             title="Notification Schedule"
             value="9 AM - 6 PM"
-            // onPress={() => router.push("/notification-schedule")}
+            onPress={() => router.push("./NotificationScheduleScreen")}
             isLast={true}
           />
         </SettingsSection>
@@ -235,7 +235,7 @@ export default function SettingsScreen() {
             iconBackground={accentColors.orange.main}
             title="App Lock"
             subtitle="Require authentication to open"
-            // onPress={() => router.push("/app-lock")}
+            onPress={() => router.push("./AppLockScreen")}
           />
           <SettingsItem
             icon="eye-off-outline"
@@ -254,14 +254,14 @@ export default function SettingsScreen() {
             iconBackground={accentColors.blue.main}
             title="Help Center"
             subtitle="Get help and support"
-            // onPress={() => router.push("/help")}
+            onPress={() => router.push("./HelpCenterScreen")}
           />
           <SettingsItem
             icon="chatbubble-outline"
             iconBackground={accentColors.green.main}
             title="Contact Support"
             subtitle="Get in touch with our team"
-            // onPress={() => router.push("/contact")}
+            onPress={() => router.push("./ContactSupportScreen")}
           />
           <SettingsItem
             icon="star-outline"
