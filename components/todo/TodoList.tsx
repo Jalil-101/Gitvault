@@ -5,7 +5,6 @@ import { requestNotificationPermissions } from "@/utils/appnotifications";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Text, View } from "react-native";
 import AddTodoModal from "./AddTodoModal";
-import NotificationTestButton from "./NotificationTestButton";
 import TodoHeader from "./TodoHeader";
 import TodoItem from "./TodoItem";
 import TodoStats from "./TodoStats";
@@ -71,14 +70,18 @@ const TodoList: React.FC = () => {
       <TodoHeader onAddPress={() => setShowAddModal(true)} />
       <TodoStats todos={todos} />
 
-      {/* Notification Test Button */}
-      <NotificationTestButton />
-
       <FlatList
         data={todos}
         renderItem={renderTodoItem}
         keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={{
+          paddingBottom: 20,
+        }}
+        style={{
+          flex: 1,
+          marginTop: 16,
+        }}
         ListEmptyComponent={
           <View
             style={{

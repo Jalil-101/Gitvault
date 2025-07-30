@@ -55,6 +55,13 @@ export const useSearchActions = ({
         );
         setSearchResults(results);
       } catch (error) {
+        // Silently handle 403 errors (user not authenticated) - this is expected
+        if (error instanceof Error && error.message.includes("403")) {
+          // User is not authenticated, which is normal for search
+          setSearchResults([]);
+          return;
+        }
+        // Only log other errors that might be actual issues
         console.error("Search error:", error);
         setSearchResults([]);
       } finally {

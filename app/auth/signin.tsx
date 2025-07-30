@@ -1,30 +1,26 @@
 // app/signin.tsx
-import React, { JSX, useState } from "react";
+import { useModernTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "expo-router";
+import { JSX, useState } from "react";
 import {
-  View,
-  TouchableOpacity,
   Alert,
-  Text,
-  ScrollView,
+  Button,
   KeyboardAvoidingView,
   Platform,
-  Button,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "@/store/authStore";
-import { useModernTheme } from "@/context/ThemeContext";
 
 // Component imports
-import { AuthHeader } from "@/components/auth/signin/AuthHeader";
-import { AuthFormContainer } from "@/components/auth/signin/AuthFormContainer";
-import { InputField } from "@/components/auth/signin/InputField";
 import { AuthButton } from "@/components/auth/signin/AuthButton";
-import { ErrorMessage } from "@/components/auth/signin/ErrorMessage";
-import { AuthDivider } from "@/components/auth/signin/AuthDivider";
+import { AuthFormContainer } from "@/components/auth/signin/AuthFormContainer";
+import { AuthHeader } from "@/components/auth/signin/AuthHeader";
 import { AuthLink } from "@/components/auth/signin/AuthLink";
-
-
-
+import { ErrorMessage } from "@/components/auth/signin/ErrorMessage";
+import { InputField } from "@/components/auth/signin/InputField";
 
 interface SignInCredentials {
   email: string;
@@ -90,10 +86,19 @@ export default function SignInScreen(): JSX.Element {
   const handleSignIn = async (): Promise<void> => {
     if (!validateForm()) return;
 
+    console.log("🔐 Starting sign in process...");
     const result = await signIn(credentials);
 
+    console.log("🔐 Sign in result:", result);
+
     if (result.success) {
-      router.replace("/(tabs)");
+      // Navigation will be handled automatically by the layout
+      // based on authentication state and onboarding status
+      console.log(
+        "✅ Sign in successful, navigation will be handled by layout"
+      );
+    } else {
+      console.log("❌ Sign in failed:", result.error);
     }
   };
 
@@ -196,42 +201,6 @@ export default function SignInScreen(): JSX.Element {
               icon="log-in-outline"
               iconPosition="right"
             />
-
-            {/* Divider */}
-            <AuthDivider text="or continue with" variant="glass" />
-
-            {/* Social Login Options */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 24,
-                gap: 12,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <AuthButton
-                  title="Google"
-                  onPress={() => {
-                    /* Handle Google sign-in */
-                  }}
-                  variant="secondary"
-                  icon="logo-google"
-                  iconPosition="left"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <AuthButton
-                  title="Apple"
-                  onPress={() => {
-                    /* Handle Apple sign-in */
-                  }}
-                  variant="secondary"
-                  icon="logo-apple"
-                  iconPosition="left"
-                />
-              </View>
-            </View>
 
             {/* Sign Up Link */}
             <AuthLink

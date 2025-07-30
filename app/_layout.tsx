@@ -9,7 +9,7 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 // import NetInfo from "@react-native-async-storage/async-storage";
@@ -25,10 +25,6 @@ import { SplashWrapper } from "@/components/SplashWrapper";
 
 // Import NativeWind for Tailwind CSS support
 import "../global.css";
-
-// Import the GamificationProvider
-import { GamificationProvider } from "./gamification";
-import { ChallengesModal } from "./gamification";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -66,19 +62,22 @@ function createNavigationTheme(isDark: boolean) {
 
 // Auth-aware navigation component
 function AuthAwareNavigation() {
-  const { isAuthenticated, loading, isFirstTime, verifyAuth } = useAuthStore();
+  const { isAuthenticated, loading, hasCompletedOnboarding, verifyAuth } =
+    useAuthStore();
   const { isDarkTheme } = useModernTheme();
   const segments = useSegments();
   const router = useRouter();
   const navigationTheme = createNavigationTheme(isDarkTheme);
   const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [lastNavigation, setLastNavigation] = useState<string>("");
 
   console.log("Debug Auth State:", {
     isNavigationReady,
     loading,
     isAuthenticated,
-    isFirstTime,
+    hasCompletedOnboarding,
   });
+
   // Initialize auth verification on app start
   useEffect(() => {
     const initializeAuth = async () => {
@@ -93,7 +92,16 @@ function AuthAwareNavigation() {
         setIsNavigationReady(true);
       }
     };
+
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.log("⏰ Auth verification timeout, forcing navigation ready");
+      setIsNavigationReady(true);
+    }, 5000); // 5 second timeout (reduced from 10)
+
     initializeAuth();
+
+    return () => clearTimeout(timeoutId);
   }, [verifyAuth]);
 
   useEffect(() => {
@@ -108,40 +116,124 @@ function AuthAwareNavigation() {
     checkNetwork();
   }, []);
 
-  // Navigation logic based on auth state
+  // Navigation logic based on auth state - only handle initial auth flow
   useEffect(() => {
-    if (!isNavigationReady) return;
+    if (!isNavigationReady) {
+      console.log("⏳ Navigation not ready yet, waiting...");
+      return;
+    }
 
     const inAuthGroup = segments[0] === "auth";
     const inOnboardingGroup = segments[0] === "onboarding";
+    const inTabsGroup = segments[0] === "(tabs)";
 
     console.log("🧭 Navigation Check:", {
       isAuthenticated,
-      isFirstTime,
+      hasCompletedOnboarding,
       inAuthGroup,
       inOnboardingGroup,
+      inTabsGroup,
       segments,
+      loading,
     });
 
-    if (isFirstTime) {
-      console.log("🎯 First time user, navigating to onboarding");
-      router.replace("/onboarding");
-    } else if (!isAuthenticated && !inAuthGroup) {
-      console.log("🔐 Not authenticated, navigating to auth");
-      router.replace("/auth/signin");
-    } else if (isAuthenticated && (inAuthGroup || inOnboardingGroup)) {
-      console.log("✅ Authenticated, navigating to main app");
-      router.replace("/(tabs)");
+    // Only handle initial auth flow, not internal navigation
+    if (!isAuthenticated && !inAuthGroup) {
+      // Not authenticated and not in auth group - go to sign in
+      const targetRoute = "/auth/signin";
+      if (lastNavigation !== targetRoute) {
+        console.log("🔐 Not authenticated, navigating to sign in");
+        setLastNavigation(targetRoute);
+        try {
+          router.replace(targetRoute);
+        } catch (error) {
+          console.error("❌ Navigation error:", error);
+        }
+      }
+    } else if (
+      isAuthenticated &&
+      !hasCompletedOnboarding &&
+      !inOnboardingGroup
+    ) {
+      // New user (from signup) needs onboarding - go to onboarding
+      const targetRoute = "/onboarding";
+      if (lastNavigation !== targetRoute) {
+        console.log("🎯 New user needs onboarding, navigating to onboarding");
+        setLastNavigation(targetRoute);
+        try {
+          router.replace(targetRoute);
+        } catch (error) {
+          console.error("❌ Navigation error:", error);
+        }
+      }
+    } else if (
+      isAuthenticated &&
+      hasCompletedOnboarding &&
+      (inAuthGroup || inOnboardingGroup)
+    ) {
+      // Returning user (from signin) or completed onboarding - go to main app
+      const targetRoute = "/(tabs)";
+      if (lastNavigation !== targetRoute) {
+        console.log(
+          "✅ Returning user or completed onboarding, navigating to main app"
+        );
+        setLastNavigation(targetRoute);
+        try {
+          router.replace(targetRoute);
+        } catch (error) {
+          console.error("❌ Navigation error:", error);
+        }
+      }
     }
-  }, [isAuthenticated, isFirstTime, segments, isNavigationReady, router]);
+  }, [
+    isAuthenticated,
+    hasCompletedOnboarding,
+    isNavigationReady,
+    router,
+    loading,
+    lastNavigation,
+  ]);
 
   // Show loading screen while auth is being verified
   if (!isNavigationReady || loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#0A0A0F",
+        }}
+      >
+        <Text style={{ color: "#FFFFFF", fontSize: 16, marginBottom: 8 }}>
+          Loading...
+        </Text>
+        <Text style={{ color: "#64748B", fontSize: 12 }}>
+          {!isNavigationReady
+            ? "Initializing..."
+            : "Verifying authentication..."}
+        </Text>
+        <Text style={{ color: "#64748B", fontSize: 10, marginTop: 8 }}>
+          Auth: {isAuthenticated ? "Yes" : "No"} | Onboarding:{" "}
+          {hasCompletedOnboarding ? "Complete" : "Pending"}
+        </Text>
+        <Text style={{ color: "#64748B", fontSize: 10, marginTop: 4 }}>
+          Loading: {loading ? "Yes" : "No"} | Ready:{" "}
+          {isNavigationReady ? "Yes" : "No"}
+        </Text>
       </View>
     );
+  }
+
+  // Debug screen to show current state
+  if (__DEV__) {
+    console.log("🔍 Debug - Current State:", {
+      isAuthenticated,
+      hasCompletedOnboarding,
+      loading,
+      isNavigationReady,
+      segments,
+    });
   }
 
   return (
@@ -162,40 +254,9 @@ function AuthAwareNavigation() {
 
 // Themed layout component
 function ThemedLayout() {
-  const [showChallenges, setShowChallenges] = useState(false);
-  const segments = useSegments();
-  const inAuthOrOnboarding =
-    segments[0] === "auth" || segments[0] === "onboarding";
   return (
     <ThemeProvider value={createNavigationTheme(false)}>
       <AuthAwareNavigation />
-      {/* Floating Challenges Button (hide on auth/onboarding) */}
-      {!inAuthOrOnboarding && (
-        <>
-          <TouchableOpacity
-            style={{
-              position: "absolute",
-              bottom: 200,
-              right: 24,
-              backgroundColor: "#22c55e",
-              borderRadius: 24,
-              padding: 16,
-              elevation: 8,
-              zIndex: 100,
-            }}
-            onPress={() => setShowChallenges(true)}
-            activeOpacity={0.85}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 18 }}>
-              🎯
-            </Text>
-          </TouchableOpacity>
-          <ChallengesModal
-            visible={showChallenges}
-            onClose={() => setShowChallenges(false)}
-          />
-        </>
-      )}
     </ThemeProvider>
   );
 }
@@ -256,14 +317,12 @@ export default function RootLayout() {
   }
 
   return (
-    <GamificationProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ModernThemeProvider>
-          <SplashWrapper>
-            <ThemedLayout />
-          </SplashWrapper>
-        </ModernThemeProvider>
-      </GestureHandlerRootView>
-    </GamificationProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ModernThemeProvider>
+        <SplashWrapper>
+          <ThemedLayout />
+        </SplashWrapper>
+      </ModernThemeProvider>
+    </GestureHandlerRootView>
   );
 }

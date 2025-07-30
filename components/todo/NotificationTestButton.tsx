@@ -1,6 +1,12 @@
 // components/todo/NotificationTestButton.tsx
 import { useModernTheme } from "@/context/ThemeContext";
-import { pushNotificationService } from "@/services/PushNotificationService";
+import {
+  cancelAllNotifications,
+  getPendingNotifications,
+  requestNotificationPermissions,
+  scheduleImmediateNotification,
+  scheduleTodoNotification,
+} from "@/utils/appnotifications";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
@@ -12,12 +18,28 @@ const NotificationTestButton: React.FC = () => {
   const testImmediateNotification = async () => {
     setIsLoading(true);
     try {
-      await pushNotificationService.presentNotification(
+      // Request permissions first
+      const hasPermission = await requestNotificationPermissions();
+      if (!hasPermission) {
+        Alert.alert(
+          "Permission Denied",
+          "Please enable notifications in settings"
+        );
+        return;
+      }
+
+      console.log("🔔 Testing immediate notification...");
+
+      await scheduleImmediateNotification(
         "Test Todo Notification",
         "This is a test notification for todo deadlines",
         { type: "test", todoId: "test-123" }
       );
-      Alert.alert("Success", "Test notification sent!");
+
+      Alert.alert(
+        "Success",
+        "Test notification sent! Check your notification panel."
+      );
     } catch (error) {
       Alert.alert("Error", "Failed to send test notification");
       console.error("Test notification error:", error);
@@ -30,17 +52,23 @@ const NotificationTestButton: React.FC = () => {
     setIsLoading(true);
     try {
       const futureDate = new Date();
-      futureDate.setSeconds(futureDate.getSeconds() + 10); // 10 seconds from now
+      futureDate.setSeconds(futureDate.getSeconds() + 5); // 5 seconds from now
 
-      await pushNotificationService.scheduleTodoDeadlineNotification(
-        "test-todo-123",
-        "Test Todo Task",
+      console.log(
+        "📅 Testing scheduled notification for 5 seconds from now..."
+      );
+      console.log(`⏰ Scheduled time: ${futureDate.toISOString()}`);
+
+      await scheduleTodoNotification(
+        "test-todo-456",
+        "Test Scheduled Task",
         futureDate,
         "reminder"
       );
+
       Alert.alert(
         "Success",
-        "Test scheduled notification set for 10 seconds from now!"
+        "Test scheduled notification set for 5 seconds from now! Check your notifications."
       );
     } catch (error) {
       Alert.alert("Error", "Failed to schedule test notification");
@@ -56,12 +84,13 @@ const NotificationTestButton: React.FC = () => {
       const deadline = new Date();
       deadline.setMinutes(deadline.getMinutes() + 1); // 1 minute from now
 
-      await pushNotificationService.scheduleTodoDeadlineNotification(
-        "test-deadline-123",
+      await scheduleTodoNotification(
+        "test-deadline-789",
         "Test Deadline Task",
         deadline,
         "final"
       );
+
       Alert.alert(
         "Success",
         "Test deadline notification set for 1 minute from now!"
@@ -69,6 +98,66 @@ const NotificationTestButton: React.FC = () => {
     } catch (error) {
       Alert.alert("Error", "Failed to schedule deadline notification");
       console.error("Deadline notification error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkPendingNotifications = async () => {
+    setIsLoading(true);
+    try {
+      const notifications = await getPendingNotifications();
+      Alert.alert(
+        "Pending Notifications",
+        `You have ${notifications.length} scheduled notifications`
+      );
+    } catch (error) {
+      Alert.alert("Error", "Failed to get pending notifications");
+      console.error("Pending notifications error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    setIsLoading(true);
+    try {
+      await cancelAllNotifications();
+      Alert.alert("Success", "All scheduled notifications cleared!");
+    } catch (error) {
+      Alert.alert("Error", "Failed to clear notifications");
+      console.error("Clear notifications error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const checkNotificationStatus = async () => {
+    setIsLoading(true);
+    try {
+      console.log("🔍 Checking notification status...");
+
+      // Check permissions
+      const hasPermission = await requestNotificationPermissions();
+      console.log("📱 Permission status:", hasPermission);
+
+      // Get pending notifications
+      const pendingNotifications = await getPendingNotifications();
+      console.log(
+        "📋 Pending notifications count:",
+        pendingNotifications.length
+      );
+
+      // Show status
+      Alert.alert(
+        "Notification Status",
+        `Permissions: ${hasPermission ? "Granted" : "Denied"}\nPending: ${
+          pendingNotifications.length
+        } notifications`
+      );
+    } catch (error) {
+      Alert.alert("Error", "Failed to check notification status");
+      console.error("Status check error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +247,7 @@ const NotificationTestButton: React.FC = () => {
             fontWeight: "600",
           }}
         >
-          {isLoading ? "Scheduling..." : "Test Scheduled Reminder (10s)"}
+          {isLoading ? "Scheduling..." : "Test Scheduled (10s)"}
         </Text>
       </TouchableOpacity>
 
@@ -168,6 +257,7 @@ const NotificationTestButton: React.FC = () => {
           padding: 12,
           borderRadius: 8,
           alignItems: "center",
+          marginBottom: 10,
           ...shadows.sm,
         }}
         onPress={testDeadlineNotification}
@@ -180,7 +270,75 @@ const NotificationTestButton: React.FC = () => {
             fontWeight: "600",
           }}
         >
-          {isLoading ? "Scheduling..." : "Test Deadline Notification (1m)"}
+          {isLoading ? "Scheduling..." : "Test Deadline (1m)"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.accents.blue.main,
+          padding: 12,
+          borderRadius: 8,
+          alignItems: "center",
+          marginBottom: 10,
+          ...shadows.sm,
+        }}
+        onPress={checkPendingNotifications}
+        disabled={isLoading}
+      >
+        <Text
+          style={{
+            color: colors.text.inverse,
+            fontSize: 16,
+            fontWeight: "600",
+          }}
+        >
+          {isLoading ? "Checking..." : "Check Pending"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.status.error.main,
+          padding: 12,
+          borderRadius: 8,
+          alignItems: "center",
+          ...shadows.sm,
+        }}
+        onPress={clearAllNotifications}
+        disabled={isLoading}
+      >
+        <Text
+          style={{
+            color: colors.text.inverse,
+            fontSize: 16,
+            fontWeight: "600",
+          }}
+        >
+          {isLoading ? "Clearing..." : "Clear All"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.interactive.secondary,
+          padding: 12,
+          borderRadius: 8,
+          alignItems: "center",
+          marginTop: 10,
+          ...shadows.sm,
+        }}
+        onPress={checkNotificationStatus}
+        disabled={isLoading}
+      >
+        <Text
+          style={{
+            color: colors.text.primary,
+            fontSize: 16,
+            fontWeight: "600",
+          }}
+        >
+          {isLoading ? "Checking Status..." : "Check Notification Status"}
         </Text>
       </TouchableOpacity>
     </View>

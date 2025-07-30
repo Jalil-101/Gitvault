@@ -2,7 +2,6 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/store/authStore";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import {
   Check,
   ChevronLeft,
@@ -126,7 +125,11 @@ export default function OnboardingScreen() {
 
   const handleComplete = () => {
     completeOnboarding();
-    router.replace("/(tabs)");
+    // Navigation will be handled automatically by the layout
+    // after onboarding is completed
+    console.log(
+      "✅ Onboarding completed, navigation will be handled by layout"
+    );
   };
 
   const styles = {

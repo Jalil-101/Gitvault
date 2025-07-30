@@ -109,7 +109,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
             key={day}
             className="text-xs font-semibold text-center"
             style={{
-              color: colors.text.secondary,
+              color: "#000000", // Black for better visibility
               width: 36,
             }}
           >
@@ -164,11 +164,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
                   <Text
                     className="text-xs font-semibold"
                     style={{
-                      color: isFuture
-                        ? "#6B7280"
-                        : day.level > 0
-                        ? "#FFFFFF"
-                        : colors.text.tertiary,
+                      color: "#000000", // Always black for better visibility
                     }}
                   >
                     {dayDate.getDate()}
@@ -190,7 +186,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
       >
         <Text
           className="text-xs font-medium mr-3"
-          style={{ color: colors.text.tertiary }}
+          style={{ color: "#000000" }} // Black for better visibility
         >
           Less
         </Text>
@@ -217,7 +213,7 @@ export const ContributionCalendar: React.FC<ContributionCalendarProps> = ({
         </View>
         <Text
           className="text-xs font-medium ml-3"
-          style={{ color: colors.text.tertiary }}
+          style={{ color: "#000000" }} // Black for better visibility
         >
           More
         </Text>

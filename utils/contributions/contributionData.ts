@@ -126,52 +126,72 @@ export const generateContributionData = async (): Promise<
   ContributionDay[]
 > => {
   try {
-    // Get stored repository creations
+    // Get repository creations from storage
     const storedCreations = await AsyncStorage.getItem(
       REPOSITORY_CREATIONS_KEY
     );
-    const creations: RepositoryCreation[] = storedCreations
-      ? JSON.parse(storedCreations).map((c: any) => ({
-          ...c,
-          createdAt: new Date(c.createdAt),
-        }))
-      : [];
 
-    const contributions: ContributionDay[] = [];
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    // Generate data for current month and next 3 months
-    for (let monthOffset = 0; monthOffset <= 3; monthOffset++) {
-      const month = (currentMonth + monthOffset) % 12;
-      const year = currentYear + Math.floor((currentMonth + monthOffset) / 12);
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dateKey = date.toISOString().split("T")[0];
-
-        // Check if this date is in the future
-        const isFuture = date > today;
-
-        // Count repository creations for this date
-        const creationsOnDate = creations.filter((creation) => {
-          const creationDate = new Date(creation.createdAt);
-          return creationDate.toISOString().split("T")[0] === dateKey;
-        });
-
-        const count = creationsOnDate.length;
-        const level = isFuture ? 0 : getContributionLevel(count);
-
-        contributions.push({
-          date: dateKey,
-          count,
-          level,
-        });
-      }
+    if (!storedCreations) {
+      // New user - return null/empty data
+      console.log("📊 New user detected - no contribution data");
+      return [];
     }
 
+    const repositoryCreations: RepositoryCreation[] = JSON.parse(
+      storedCreations
+    ).map((creation: any) => ({
+      ...creation,
+      createdAt: new Date(creation.createdAt),
+    }));
+
+    if (repositoryCreations.length === 0) {
+      // User has no repository creations - return empty data
+      console.log(
+        "📊 User has no repository creations - empty contribution data"
+      );
+      return [];
+    }
+
+    // Generate contribution data for the last 365 days
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - 364); // 365 days total
+
+    const contributions: ContributionDay[] = [];
+
+    for (let i = 0; i < 365; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+
+      // Check if this date is in the future
+      const isFuture = currentDate > now;
+
+      // Count repository creations for this date
+      const creationsOnDate = repositoryCreations.filter((creation) => {
+        const creationDate = new Date(creation.createdAt);
+        return (
+          creationDate.getFullYear() === currentDate.getFullYear() &&
+          creationDate.getMonth() === currentDate.getMonth() &&
+          creationDate.getDate() === currentDate.getDate()
+        );
+      });
+
+      const contributionLevel = getContributionLevel(creationsOnDate.length);
+
+      contributions.push({
+        date: currentDate.toISOString().split("T")[0],
+        count: creationsOnDate.length,
+        level: contributionLevel,
+        color: getContributionColor(contributionLevel, isFuture),
+        isFuture,
+      });
+    }
+
+    console.log(
+      "📊 Generated contribution data for",
+      contributions.length,
+      "days"
+    );
     return contributions;
   } catch (error) {
     console.error("Error generating contribution data:", error);

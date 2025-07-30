@@ -114,8 +114,11 @@ export default function SignUpScreen(): React.JSX.Element {
     });
 
     if (result.success) {
-      // Don't navigate to tabs immediately - let onboarding handle it
-      Alert.alert("Success", "Account created successfully!", [{ text: "OK" }]);
+      // Navigation will be handled automatically by the layout
+      // New users will be directed to onboarding after successful signup
+      console.log(
+        "✅ Sign up successful, navigation will be handled by layout"
+      );
     } else {
       Alert.alert(
         "Sign Up Failed",

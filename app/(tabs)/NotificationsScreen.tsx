@@ -3,7 +3,7 @@ import { useModernTheme } from "@/context/ThemeContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -228,18 +228,22 @@ export default function NotificationsScreen() {
                 addTodoNotification,
               } = useNotificationStore.getState();
 
+              // Simulate: "john_doe" liked "current_user"'s post
               addLikeNotification(
                 "post-1",
                 "My Awesome Post",
-                "john_doe",
-                "current_user"
+                "john_doe@example.com", // The person who liked
+                "current_user@example.com" // The post author (recipient)
               );
+
+              // Simulate: "jane_smith" commented on "current_user"'s post
               addCommentNotification(
                 "post-1",
                 "My Awesome Post",
-                "jane_smith",
-                "current_user"
+                "jane_smith@example.com", // The person who commented
+                "current_user@example.com" // The post author (recipient)
               );
+
               addTodoNotification(
                 "todo-1",
                 "Complete project",

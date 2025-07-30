@@ -75,6 +75,13 @@ export class SearchService {
         ownerId: repo.ownerUsername,
       }));
     } catch (error) {
+      // Silently handle 403 errors (user not authenticated) - this is expected
+      if (error instanceof Error && error.message.includes("403")) {
+        // User is not authenticated, which is normal for search
+        // Fallback to GitHub search only
+        return this.getGitHubRepositories(query);
+      }
+      // Only log other errors that might be actual issues
       console.error("Search error:", error);
       // Fallback to GitHub search only
       return this.getGitHubRepositories(query);
@@ -109,6 +116,16 @@ export class SearchService {
         ownerId: repo.owner.login,
       }));
     } catch (error) {
+      // Silently handle network errors and timeouts - these are expected
+      if (
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+          error.message.includes("network") ||
+          error.message.includes("timeout"))
+      ) {
+        return [];
+      }
+      // Only log other errors that might be actual issues
       console.error("GitHub search error:", error);
       return [];
     }
@@ -138,6 +155,16 @@ export class SearchService {
         verified: user.type === "Organization",
       }));
     } catch (error) {
+      // Silently handle network errors and timeouts - these are expected
+      if (
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+          error.message.includes("network") ||
+          error.message.includes("timeout"))
+      ) {
+        return [];
+      }
+      // Only log other errors that might be actual issues
       console.error("User search error:", error);
       return [];
     }
@@ -165,6 +192,16 @@ export class SearchService {
         description: topic.short_description,
       }));
     } catch (error) {
+      // Silently handle network errors and timeouts - these are expected
+      if (
+        error instanceof Error &&
+        (error.message.includes("fetch") ||
+          error.message.includes("network") ||
+          error.message.includes("timeout"))
+      ) {
+        return [];
+      }
+      // Only log other errors that might be actual issues
       console.error("Topic search error:", error);
       return [];
     }

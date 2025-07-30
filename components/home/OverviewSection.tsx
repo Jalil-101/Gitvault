@@ -1,9 +1,12 @@
 import { CardColorType } from "@/constants/Colors";
 import { useModernTheme } from "@/context/ThemeContext";
 import { dashboardService, DashboardStats } from "@/services/dashboardService";
+import { useCommitsStore } from "@/store/commitsStore";
+import { useStarsStore } from "@/store/starsStore";
+import { useTodoStore } from "@/store/todoStore";
 import { useRouter } from "expo-router";
 import { ClipboardCheck, FileText, GitCommit, Star } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Dimensions, Text, View } from "react-native";
 import StatsCard from "./StatsCard";
 
@@ -26,9 +29,16 @@ interface StatsData {
   route: ValidRoutes;
 }
 
-export default function OverviewSection() {
+export interface OverviewSectionRef {
+  fetchDashboardStats: () => Promise<void>;
+}
+
+const OverviewSection = forwardRef<OverviewSectionRef>((props, ref) => {
   const { colors } = useModernTheme();
   const router = useRouter();
+  const { todos } = useTodoStore();
+  const { privateCommits } = useCommitsStore();
+  const { starredRepositories } = useStarsStore();
   const [stats, setStats] = useState<DashboardStats>({
     repositories: 0,
     commits: 0,
@@ -42,6 +52,12 @@ export default function OverviewSection() {
     try {
       setLoading(true);
       const dashboardStats = await dashboardService.getDashboardStats();
+      // Update tasks count with real-time todo count
+      dashboardStats.tasks = todos.length;
+      // Update commits count with real-time private commits count
+      dashboardStats.commits = privateCommits.length;
+      // Update stars count with real-time starred repositories count
+      dashboardStats.stars = starredRepositories.length;
       setStats(dashboardStats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -50,9 +66,24 @@ export default function OverviewSection() {
     }
   };
 
+  // Expose fetchDashboardStats via ref
+  useImperativeHandle(ref, () => ({
+    fetchDashboardStats,
+  }));
+
   useEffect(() => {
     fetchDashboardStats();
   }, []);
+
+  // Update stats when todos, commits, or stars change
+  useEffect(() => {
+    setStats((prevStats) => ({
+      ...prevStats,
+      tasks: todos.length,
+      commits: privateCommits.length,
+      stars: starredRepositories.length,
+    }));
+  }, [todos, privateCommits, starredRepositories]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000) {
@@ -130,4 +161,6 @@ export default function OverviewSection() {
       </View>
     </View>
   );
-}
+});
+
+export default OverviewSection;

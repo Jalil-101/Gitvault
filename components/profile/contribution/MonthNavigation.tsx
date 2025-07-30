@@ -24,8 +24,8 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   colors,
   shadows,
 }) => {
-  // Disable previous button - no going to past months
-  const isPreviousDisabled = true;
+  // Allow navigation to previous months
+  const isPreviousDisabled = currentMonthIndex === 0;
   const isNextDisabled = currentMonthIndex === totalMonths - 1;
 
   return (
@@ -35,17 +35,24 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
         disabled={isPreviousDisabled}
         className="flex-row items-center p-3 rounded-xl"
         style={{
-          backgroundColor: colors.surface.tertiary,
+          backgroundColor: isPreviousDisabled
+            ? colors.surface.tertiary
+            : colors.surface.secondary,
           borderWidth: 1,
-          borderColor: `${colors.text.tertiary}20`,
+          borderColor: isPreviousDisabled
+            ? `${colors.text.tertiary}20`
+            : "#22C55E30",
           ...shadows.sm,
         }}
       >
-        <ChevronLeft size={16} color={colors.text.tertiary} />
+        <ChevronLeft 
+          size={16} 
+          color={isPreviousDisabled ? colors.text.tertiary : "#16A34A"} 
+        />
         <Text
           className="text-sm font-medium ml-1"
           style={{
-            color: colors.text.tertiary,
+            color: isPreviousDisabled ? colors.text.tertiary : colors.text.primary,
           }}
         >
           Previous

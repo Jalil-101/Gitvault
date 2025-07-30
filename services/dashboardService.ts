@@ -19,7 +19,17 @@ class DashboardService {
     try {
       const token = await this.getAuthToken();
       if (!token) {
-        throw new Error("Authentication token not found");
+        console.log(
+          "DashboardService - No auth token, returning default stats"
+        );
+        // Return default stats instead of throwing error
+        return {
+          repositories: 0,
+          commits: 0,
+          tasks: 0,
+          stars: 0,
+          recentRepositories: [],
+        };
       }
 
       // Fetch repositories
@@ -39,38 +49,60 @@ class DashboardService {
         )
         .slice(0, 3);
 
-      // For now, we'll use placeholder data for commits and tasks
-      // These would need backend endpoints to get real data
+      // Get actual private commits count from the store
       let commitsCount = 0;
       let tasksCount = 0;
+      let starsCount = 0;
 
       try {
-        // Placeholder: calculate commits based on repository count
-        // In a real implementation, you'd have a backend endpoint for this
-        commitsCount =
-          repositories.length * (Math.floor(Math.random() * 20) + 10);
+        // Get actual private commits count from the store
+        const { useCommitsStore } = await import("../store/commitsStore");
+        const commitsStore = useCommitsStore.getState();
+        commitsCount = commitsStore.getCommitsCount();
+        console.log("📊 Dashboard - Private commits count:", commitsCount);
       } catch (error) {
         console.log("Commits count not available");
+        commitsCount = 0;
       }
 
       try {
-        // Placeholder: random tasks count
-        // In a real implementation, you'd fetch from a tasks API
-        tasksCount = Math.floor(Math.random() * 30) + 5;
+        // Get actual starred repositories count from the store
+        const { useStarsStore } = await import("../store/starsStore");
+        const starsStore = useStarsStore.getState();
+        starsCount = starsStore.getStarredCount();
+        console.log("⭐ Dashboard - Starred repositories count:", starsCount);
+      } catch (error) {
+        console.log("Stars count not available");
+        starsCount = 0;
+      }
+
+      try {
+        // Get actual todo count from the store
+        const { useTodoStore } = await import("../store/todoStore");
+        const todoStore = useTodoStore.getState();
+        tasksCount = todoStore.todos.length;
       } catch (error) {
         console.log("Tasks count not available");
+        tasksCount = 0;
       }
 
       return {
         repositories: repositories.length,
         commits: commitsCount,
         tasks: tasksCount,
-        stars: totalStars,
+        stars: starsCount,
         recentRepositories,
       };
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
-      throw error;
+      // Return default stats instead of throwing error
+      return {
+        repositories: 0,
+        commits: 0,
+        tasks: 0,
+        stars: 0,
+        recentRepositories: [],
+      };
     }
   }
 
@@ -78,7 +110,15 @@ class DashboardService {
     try {
       const token = await this.getAuthToken();
       if (!token) {
-        throw new Error("Authentication token not found");
+        console.log("DashboardService - No auth token for repository stats");
+        // Return default stats instead of throwing error
+        return {
+          repository: null,
+          files: 0,
+          commits: 0,
+          stars: 0,
+          lastUpdated: new Date().toISOString(),
+        };
       }
 
       // Fetch repository details
@@ -100,7 +140,14 @@ class DashboardService {
       };
     } catch (error) {
       console.error("Error fetching repository stats:", error);
-      throw error;
+      // Return default stats instead of throwing error
+      return {
+        repository: null,
+        files: 0,
+        commits: 0,
+        stars: 0,
+        lastUpdated: new Date().toISOString(),
+      };
     }
   }
 
@@ -108,7 +155,8 @@ class DashboardService {
     try {
       const token = await this.getAuthToken();
       if (!token) {
-        throw new Error("Authentication token not found");
+        console.log("DashboardService - No auth token for commits count");
+        return 0; // Return 0 instead of throwing error
       }
 
       if (repositoryId) {
@@ -165,9 +213,12 @@ class DashboardService {
 
   async getTasksCount(): Promise<number> {
     try {
-      // This would need a backend endpoint for tasks/todos
-      // For now, return placeholder data
-      return Math.floor(Math.random() * 30) + 5;
+      // Import the todo store to get actual todo count
+      const { useTodoStore } = await import("../store/todoStore");
+      const todoStore = useTodoStore.getState();
+
+      // Return the actual count of todos
+      return todoStore.todos.length;
     } catch (error) {
       console.error("Error fetching tasks count:", error);
       return 0;

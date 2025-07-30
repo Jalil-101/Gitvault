@@ -32,6 +32,11 @@ export default function RepositoryDetailScreen() {
   const { id } = useLocalSearchParams();
   const { colors, shadows, glass, isDarkTheme, gradients } = useModernTheme();
 
+  // Configure StatusBar
+  React.useEffect(() => {
+    StatusBar.setBarStyle(isDarkTheme ? "light-content" : "dark-content");
+  }, [isDarkTheme]);
+
   const [repository, setRepository] = useState<Repository | null>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

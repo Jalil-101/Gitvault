@@ -1,56 +1,29 @@
 import { useModernTheme } from "@/context/ThemeContext";
-import { pushNotificationService } from "@/services/PushNotificationService";
-import { Ionicons } from "@expo/vector-icons";
+import { useNotificationStore } from "@/store/notificationStore";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
-interface NotificationTestButtonProps {
-  style?: any;
-  textStyle?: any;
-}
+export const NotificationTestButton: React.FC = () => {
+  const { addLikeNotification, addCommentNotification } =
+    useNotificationStore();
+  const { colors, shadows } = useModernTheme();
 
-const NotificationTestButton: React.FC<NotificationTestButtonProps> = ({
-  style,
-  textStyle,
-}) => {
-  const { colors, shadows, isDarkTheme } = useModernTheme();
+  const testLikeNotification = () => {
+    addLikeNotification(
+      "123",
+      "Test Post Title",
+      "john.doe@example.com",
+      "jane.smith@example.com"
+    );
+  };
 
-  const runNotificationTests = async () => {
-    try {
-      // Test 1: Immediate local notification
-      await pushNotificationService.presentNotification(
-        "Test Notification",
-        "This is a test notification",
-        { type: "test" }
-      );
-
-      // Show success message
-      Alert.alert(
-        "Testing Notifications",
-        "Local notification sent immediately!\n\nScheduled notification will appear in 5 seconds...",
-        [{ text: "OK" }]
-      );
-
-      // Test 2: Scheduled notification after 5 seconds
-      setTimeout(async () => {
-        try {
-          await pushNotificationService.scheduleLocalNotification(
-            "Scheduled Test",
-            "This notification was scheduled 5 seconds ago",
-            { type: "scheduled" },
-            0 // Send immediately since we're already waiting 5 seconds
-          );
-        } catch (error) {
-          console.error("Scheduled notification error:", error);
-        }
-      }, 5000);
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        "Failed to test notifications. Check console for details."
-      );
-      console.error("Notification test error:", error);
-    }
+  const testCommentNotification = () => {
+    addCommentNotification(
+      "123",
+      "Test Post Title",
+      "john.doe@example.com",
+      "jane.smith@example.com"
+    );
   };
 
   return (
@@ -58,24 +31,14 @@ const NotificationTestButton: React.FC<NotificationTestButtonProps> = ({
       style={[
         styles.button,
         {
-          backgroundColor: colors.interactive.primary,
+          backgroundColor: colors.accents.purple.main,
           ...shadows.md,
         },
-        style,
       ]}
-      onPress={runNotificationTests}
-      activeOpacity={0.7}
+      onPress={testLikeNotification}
     >
-      <Ionicons
-        name="notifications-outline"
-        size={20}
-        color={colors.text.inverse}
-        style={styles.icon}
-      />
-      <Text
-        style={[styles.buttonText, { color: colors.text.inverse }, textStyle]}
-      >
-        Test Notifications
+      <Text style={[styles.buttonText, { color: colors.text.inverse }]}>
+        Test Like Notification
       </Text>
     </TouchableOpacity>
   );
@@ -83,21 +46,14 @@ const NotificationTestButton: React.FC<NotificationTestButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
-    margin: 10,
+    marginVertical: 8,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
-    marginLeft: 8,
-  },
-  icon: {
-    marginRight: 4,
+    textAlign: "center",
   },
 });
-
-export default NotificationTestButton;

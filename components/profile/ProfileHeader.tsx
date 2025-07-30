@@ -2,8 +2,8 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/store/authStore";
 import { UserProfile } from "@/types/profile";
-import { Link } from "expo-router";
-import { Bell, Calendar, Settings } from "lucide-react-native";
+import { format } from "date-fns";
+import { Bell, Calendar, Mail, Settings } from "lucide-react-native";
 import React from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
@@ -33,12 +33,61 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   // Function to get actual join date
   const getJoinDate = () => {
     // Try to get from auth store first (if user has signup date)
-    if (authUser) {
-      // For now, we'll use a fallback since auth store doesn't store signup date
-      // In a real app, you'd get this from the user's profile data
-      return "January 2024"; // Placeholder - replace with actual logic
+    if (authUser && authUser.accountCreatedAt) {
+      try {
+        const joinDate = new Date(authUser.accountCreatedAt);
+        // Check if the date is valid
+        if (isNaN(joinDate.getTime())) {
+          console.log("⚠️ Invalid date format:", authUser.accountCreatedAt);
+          return joinedDate || "January 2024";
+        }
+
+        // Log the detailed date for debugging
+        const detailedDate = format(joinDate, "MMM dd, yyyy 'at' h:mm a");
+        console.log("📅 Account creation date:", detailedDate);
+
+        // Format as "Joined March 2024" or "Joined Mar 15, 2024" for more recent dates
+        const now = new Date();
+        const daysDiff = Math.floor(
+          (now.getTime() - joinDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysDiff < 30) {
+          // For recent accounts, show more detailed date
+          return `Joined ${format(joinDate, "MMM dd, yyyy")}`;
+        } else {
+          // For older accounts, show month and year
+          return `Joined ${format(joinDate, "MMMM yyyy")}`;
+        }
+      } catch (error) {
+        console.log("⚠️ Error formatting date:", error);
+        return joinedDate || "January 2024";
+      }
     }
     return joinedDate || "January 2024"; // Fallback to prop or default
+  };
+
+  // Function to get user email
+  const getUserEmail = () => {
+    if (authUser && authUser.email) {
+      return authUser.email;
+    }
+    return "user@example.com"; // Fallback
+  };
+
+  // Function to get detailed creation date (for debugging or additional info)
+  const getDetailedCreationDate = () => {
+    if (authUser && authUser.accountCreatedAt) {
+      try {
+        const joinDate = new Date(authUser.accountCreatedAt);
+        if (!isNaN(joinDate.getTime())) {
+          return format(joinDate, "MMM dd, yyyy 'at' h:mm a");
+        }
+      } catch (error) {
+        console.log("⚠️ Error formatting detailed date:", error);
+      }
+    }
+    return null;
   };
 
   return (
@@ -50,9 +99,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           className="p-4 rounded-full mr-4"
           style={{ backgroundColor: colors.surface.secondary }}
         >
-          <Link href="/screens/SearchScreen">
-            <Bell size={24} color={colors.text.primary} />
-          </Link>
+          <Bell size={24} color={colors.text.primary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -60,9 +107,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           className="p-4 rounded-full"
           style={{ backgroundColor: colors.surface.secondary }}
         >
-          <Link href="/screens/SettingsScreen">
-            <Settings size={24} color={colors.text.primary} />
-          </Link>
+          <Settings size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
 
@@ -92,7 +137,18 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             className="text-base ml-2"
             style={{ color: colors.text.secondary }}
           >
-            Joined {getJoinDate()}
+            {getJoinDate()}
+          </Text>
+        </View>
+
+        {/* Show user email */}
+        <View className="flex-row items-center mb-4">
+          <Mail size={16} color={colors.text.tertiary} />
+          <Text
+            className="text-sm ml-2"
+            style={{ color: colors.text.tertiary }}
+          >
+            {getUserEmail()}
           </Text>
         </View>
       </View>

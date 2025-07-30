@@ -30,7 +30,7 @@ class PushNotificationService {
           return;
         }
 
-        // Configure notification handler
+        // Configure notification handler (only set once)
         Notifications.setNotificationHandler({
           handleNotification: async (notification) => {
             console.log("📱 Notification received:", notification);
@@ -42,41 +42,58 @@ class PushNotificationService {
               shouldShowAlert: true,
               shouldPlaySound: true,
               shouldSetBadge: true,
+              shouldShowBanner: true,
+              shouldShowList: true,
             };
           },
         });
 
-        // Create notification channels for Android
+        // Create notification channels for Android (with error handling)
         if (Platform.OS === "android") {
-          await Notifications.setNotificationChannelAsync("default", {
-            name: "Default",
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: "#FF231F7C",
-            sound: "default",
-            enableVibrate: true,
-            showBadge: true,
-          });
+          try {
+            await Notifications.setNotificationChannelAsync("default", {
+              name: "Default",
+              importance: Notifications.AndroidImportance.MAX,
+              vibrationPattern: [0, 250, 250, 250],
+              lightColor: "#FF231F7C",
+              sound: "default",
+              enableVibrate: true,
+              showBadge: true,
+            });
+            console.log("✅ Default notification channel created");
+          } catch (error) {
+            console.log("ℹ️ Default channel may already exist:", error);
+          }
 
-          await Notifications.setNotificationChannelAsync("todo-deadlines", {
-            name: "Todo Deadlines",
-            importance: Notifications.AndroidImportance.HIGH,
-            vibrationPattern: [0, 500, 250, 500],
-            lightColor: "#FF231F7C",
-            sound: "default",
-            enableVibrate: true,
-            showBadge: true,
-          });
+          try {
+            await Notifications.setNotificationChannelAsync("todo-deadlines", {
+              name: "Todo Deadlines",
+              importance: Notifications.AndroidImportance.HIGH,
+              vibrationPattern: [0, 500, 250, 500],
+              lightColor: "#FF231F7C",
+              sound: "default",
+              enableVibrate: true,
+              showBadge: true,
+            });
+            console.log("✅ Todo deadlines notification channel created");
+          } catch (error) {
+            console.log("ℹ️ Todo deadlines channel may already exist:", error);
+          }
 
-          await Notifications.setNotificationChannelAsync("social", {
-            name: "Social Interactions",
-            importance: Notifications.AndroidImportance.HIGH,
-            vibrationPattern: [0, 300, 200, 300],
-            lightColor: "#FF231F7C",
-            sound: "default",
-            enableVibrate: true,
-            showBadge: true,
-          });
+          try {
+            await Notifications.setNotificationChannelAsync("social", {
+              name: "Social Interactions",
+              importance: Notifications.AndroidImportance.HIGH,
+              vibrationPattern: [0, 300, 200, 300],
+              lightColor: "#FF231F7C",
+              sound: "default",
+              enableVibrate: true,
+              showBadge: true,
+            });
+            console.log("✅ Social notification channel created");
+          } catch (error) {
+            console.log("ℹ️ Social channel may already exist:", error);
+          }
         }
 
         console.log("✅ Push notifications initialized successfully");
@@ -166,7 +183,6 @@ class PushNotificationService {
           sound: "default",
           priority: Notifications.AndroidNotificationPriority.HIGH,
           vibrate: [0, 250, 250, 250],
-          icon: "notification-icon", // App icon
           color: "#1a1a2e", // App theme color
         },
         trigger: null, // Send immediately
@@ -188,7 +204,8 @@ class PushNotificationService {
     channelId: string = "default"
   ): Promise<string> {
     try {
-      const trigger = seconds > 0 ? { seconds } : null;
+      const trigger =
+        seconds > 0 ? { type: "timeInterval" as const, seconds } : null;
 
       const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
@@ -198,7 +215,6 @@ class PushNotificationService {
           sound: "default",
           priority: Notifications.AndroidNotificationPriority.HIGH,
           vibrate: [0, 250, 250, 250],
-          icon: "notification-icon",
           color: "#1a1a2e",
         },
         trigger,
@@ -231,10 +247,9 @@ class PushNotificationService {
           sound: "default",
           priority: Notifications.AndroidNotificationPriority.HIGH,
           vibrate: [0, 500, 250, 500],
-          icon: "notification-icon",
           color: "#1a1a2e",
         },
-        trigger: { date: deadline },
+        trigger: { type: "date" as const, date: deadline },
       });
 
       console.log("📋 Todo deadline notification scheduled:", notificationId);

@@ -1,10 +1,19 @@
 // store/notificationStore.ts
-import { create } from "zustand";
 import { pushNotificationService } from "@/services/PushNotificationService";
+import { create } from "zustand";
 
 export interface NotificationItem {
   id: string;
-  type: "like" | "comment" | "todo" | "star" | "fork" | "release" | "pull_request" | "issue" | "push";
+  type:
+    | "like"
+    | "comment"
+    | "todo"
+    | "star"
+    | "fork"
+    | "release"
+    | "pull_request"
+    | "issue"
+    | "push";
   title: string;
   message: string;
   author: string;
@@ -22,20 +31,40 @@ interface NotificationStore {
   notifications: NotificationItem[];
   unreadCount: number;
   isLoading: boolean;
-  
+
   // Actions
-  addNotification: (notification: Omit<NotificationItem, "id" | "timestamp" | "isRead">) => void;
+  addNotification: (
+    notification: Omit<NotificationItem, "id" | "timestamp" | "isRead">
+  ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
   clearAllNotifications: () => void;
-  
+
   // Specific notification types
-  addLikeNotification: (postId: string, postTitle: string, likerName: string, postAuthor: string) => void;
-  addCommentNotification: (postId: string, postTitle: string, commenterName: string, postAuthor: string) => void;
-  addTodoNotification: (todoId: string, todoTitle: string, deadline: Date) => void;
-  addRepositoryStarNotification: (repoId: string, repoName: string, starrerName: string) => void;
-  
+  addLikeNotification: (
+    postId: string,
+    postTitle: string,
+    likerName: string,
+    postAuthor: string
+  ) => void;
+  addCommentNotification: (
+    postId: string,
+    postTitle: string,
+    commenterName: string,
+    postAuthor: string
+  ) => void;
+  addTodoNotification: (
+    todoId: string,
+    todoTitle: string,
+    deadline: Date
+  ) => void;
+  addRepositoryStarNotification: (
+    repoId: string,
+    repoName: string,
+    starrerName: string
+  ) => void;
+
   // Load and save
   loadNotifications: () => Promise<void>;
   saveNotifications: () => Promise<void>;
@@ -103,7 +132,9 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       const notification = state.notifications.find((n) => n.id === id);
       return {
         notifications: state.notifications.filter((n) => n.id !== id),
-        unreadCount: notification?.isRead ? state.unreadCount : Math.max(0, state.unreadCount - 1),
+        unreadCount: notification?.isRead
+          ? state.unreadCount
+          : Math.max(0, state.unreadCount - 1),
       };
     });
     get().saveNotifications();
@@ -118,7 +149,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   // Specific notification types
-  addLikeNotification: (postId: string, postTitle: string, likerName: string, postAuthor: string) => {
+  addLikeNotification: (
+    postId: string,
+    postTitle: string,
+    likerName: string,
+    postAuthor: string
+  ) => {
+    // In a real app, this notification would be sent to the postAuthor's notification store
+    // via backend API. For now, we're simulating it by adding to current user's store.
     const notification = {
       type: "like" as const,
       title: "New Like",
@@ -131,7 +169,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     get().addNotification(notification);
   },
 
-  addCommentNotification: (postId: string, postTitle: string, commenterName: string, postAuthor: string) => {
+  addCommentNotification: (
+    postId: string,
+    postTitle: string,
+    commenterName: string,
+    postAuthor: string
+  ) => {
+    // In a real app, this notification would be sent to the postAuthor's notification store
+    // via backend API. For now, we're simulating it by adding to current user's store.
     const notification = {
       type: "comment" as const,
       title: "New Comment",
@@ -157,7 +202,11 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     get().addNotification(notification);
   },
 
-  addRepositoryStarNotification: (repoId: string, repoName: string, starrerName: string) => {
+  addRepositoryStarNotification: (
+    repoId: string,
+    repoName: string,
+    starrerName: string
+  ) => {
     const notification = {
       type: "star" as const,
       title: "Repository Starred",
@@ -181,7 +230,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         unreadCount: 0,
       });
     } catch (error) {
-      console.error("Error loading notifications:", error);
+      console.log("Could not load notifications");
     } finally {
       set({ isLoading: false });
     }
@@ -193,7 +242,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       const { notifications } = get();
       console.log("💾 Saved notifications:", notifications.length);
     } catch (error) {
-      console.error("Error saving notifications:", error);
+      console.log("Could not save notifications");
     }
   },
-})); 
+}));

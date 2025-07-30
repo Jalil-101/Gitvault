@@ -4,25 +4,30 @@ import { ProfileCard } from "@/components/settings/ProfileCard";
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SettingsItem } from "@/components/settings/SettingsItem";
 import { SettingsSection } from "@/components/settings/SettingsSection";
-import { StatsCard } from "@/components/settings/StatsCard";
+import { useModernTheme } from "@/context/ThemeContext";
 import { useThemeToggle } from "@/hooks/useColorScheme";
-import {
-  useAccentColors,
-  useModernThemeColor,
-  useStatusColors,
-} from "@/hooks/useThemeColor";
+import { useAccentColors, useStatusColors } from "@/hooks/useThemeColor";
 import { useAuthStore } from "@/store/authStore";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Alert, SafeAreaView, ScrollView, StatusBar } from "react-native";
+import { useState } from "react";
+import {
+  Alert,
+  ColorValue,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+} from "react-native";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const signOut = useAuthStore((state) => state.signOut);
+  const user = useAuthStore((state) => state.user);
 
   // Use specialized theme hooks for better organization
   const { isDarkTheme, toggleTheme } = useThemeToggle();
-  const { colors } = useModernThemeColor();
+  const { colors, gradients } = useModernTheme();
   const accentColors = useAccentColors();
   const statusColors = useStatusColors();
 
@@ -30,6 +35,22 @@ export default function SettingsScreen() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
   const [biometricAuth, setBiometricAuth] = useState(true);
+
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    try {
+      const hour = new Date().getHours();
+      if (hour < 12) return "Good morning";
+      if (hour < 17) return "Good afternoon";
+      return "Good evening";
+    } catch (error) {
+      return "Hello";
+    }
+  };
+
+  // Profile image URL (same as ProfileHeader)
+  const profileImageUrl =
+    "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=";
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -63,38 +84,18 @@ export default function SettingsScreen() {
     );
   };
 
-  const accountStats = [
-    {
-      label: "Repositories",
-      value: "47",
-      icon: "folder-outline" as const,
-      color: accentColors.blue.main,
-    },
-    {
-      label: "Followers",
-      value: "1.3K",
-      icon: "people-outline" as const,
-      color: accentColors.blue.main,
-    },
-    {
-      label: "Following",
-      value: "180",
-      icon: "person-add-outline" as const,
-      color: accentColors.green.main,
-    },
-    {
-      label: "Stars",
-      value: "2.3K",
-      icon: "star-outline" as const,
-      color: accentColors.orange.main,
-    },
-  ];
-
   return (
     <SafeAreaView
       className="flex-1"
       style={{ backgroundColor: colors.background.primary }}
     >
+      <LinearGradient
+        colors={
+          gradients.background as [ColorValue, ColorValue, ...ColorValue[]]
+        }
+        style={StyleSheet.absoluteFillObject}
+      />
+
       <StatusBar
         barStyle={isDarkTheme ? "light-content" : "dark-content"}
         backgroundColor={colors.background.primary}
@@ -102,25 +103,26 @@ export default function SettingsScreen() {
 
       <SettingsHeader
         title="Settings"
+        showNotifications={false}
         // onNotificationsPress={() => router.push("/notifications")}
       />
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingTop: 20, paddingBottom: 20 }}
       >
         {/* Profile Section */}
         <ProfileCard
-          name="Sarah Chen"
-          username="@developer"
-          avatar="https://github.com/github.png"
+          name={`${getGreeting() || "Hello"}, ${
+            user?.firstName || user?.email || "User"
+          }!`}
+          username={user?.email || "user@example.com"}
+          avatar={profileImageUrl || ""}
           isOnline={true}
+          showArrow={false}
           // onPress={() => router.push("/profile")}
         />
-
-        {/* Account Stats */}
-        <StatsCard stats={accountStats} />
 
         {/* Account Settings */}
         <SettingsSection title="Account">

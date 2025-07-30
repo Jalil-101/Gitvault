@@ -1,13 +1,15 @@
 // app/(tabs)/explore.tsx - Enhanced version with better spacing
 import { RepositoryCard } from "@/components/RepositoryCard";
 import { useModernTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/store/authStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 import { ExploreTab, useExplore } from "@/hooks/useExplore";
 import { PushNotificationService } from "@/services/PushNotificationService";
 import { vaultApiService } from "@/services/VaultApiService";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -52,6 +54,8 @@ interface Comment {
 export default function ExploreScreen() {
   const { colors, isDarkTheme, shadows, getGlassStyle } = useModernTheme();
   const router = useRouter();
+  const { addCommentNotification } = useNotificationStore();
+  const { user } = useAuthStore();
 
   const {
     activeTab,
@@ -85,7 +89,6 @@ export default function ExploreScreen() {
   const [newPostContent, setNewPostContent] = useState("");
   const [newComment, setNewComment] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string>("");
   const [isCreatingPost, setIsCreatingPost] = useState(false);
 
   // Animation for search bar
@@ -95,17 +98,24 @@ export default function ExploreScreen() {
   useEffect(() => {
     PushNotificationService.initializePushNotifications();
     PushNotificationService.setupNotificationHandlers();
-    getCurrentUser();
+    // getCurrentUser(); // This function is now handled by useAuthStore
   }, []);
 
-  const getCurrentUser = async () => {
-    try {
-      const user = await vaultApiService.getCurrentUser();
-      setCurrentUser(user.username || "");
-    } catch (error) {
-      console.error("Error getting current user:", error);
-    }
-  };
+  // const getCurrentUser = async () => {
+  //   try {
+  //     const user = await vaultApiService.getCurrentUser();
+  //     setCurrentUser(user.username || "");
+  //   } catch (error) {
+  //     // Silently handle 403 errors (user not authenticated) - this is expected
+  //     if (error instanceof Error && error.message.includes("403")) {
+  //       // User is not authenticated, which is normal for public explore screen
+  //       setCurrentUser("");
+  //       return;
+  //     }
+  //     // Only log other errors that might be actual issues
+  //     console.log("Could not get current user");
+  //   }
+  // };
 
   // Animate search bar when focused
   useEffect(() => {
@@ -138,7 +148,7 @@ export default function ExploreScreen() {
       setNewPostContent("");
       Alert.alert("Success", "Post created successfully!");
     } catch (error) {
-      console.error("Error creating post:", error);
+      console.log("Could not create post");
       Alert.alert("Error", "Failed to create post");
     } finally {
       setIsCreatingPost(false);
@@ -166,15 +176,24 @@ export default function ExploreScreen() {
       setNewComment("");
 
       // Send notification to post author
-      if (currentUser && currentUser !== selectedPost.authorUsername) {
+      if (user && user.email !== selectedPost.authorUsername) {
         await PushNotificationService.sendCommentNotification(
           selectedPost.authorUsername,
           selectedPost.title,
-          currentUser
+          user.email,
+          selectedPost.id.toString()
+        );
+
+        // Add social notification
+        addCommentNotification(
+          selectedPost.id.toString(),
+          selectedPost.title,
+          user.email,
+          selectedPost.authorUsername
         );
       }
     } catch (error) {
-      console.error("Error adding comment:", error);
+      console.log("Could not add comment");
       Alert.alert("Error", "Failed to add comment");
     }
   };
@@ -185,7 +204,7 @@ export default function ExploreScreen() {
       setSelectedPost({ ...post, comments });
       setCommentModalVisible(true);
     } catch (error) {
-      console.error("Error loading comments:", error);
+      console.log("Could not load comments");
       Alert.alert("Error", "Failed to load comments");
     }
   };
@@ -574,7 +593,9 @@ export default function ExploreScreen() {
         <FlatList
           data={posts}
           renderItem={renderPost}
-          keyExtractor={(item) => `post-${item.id}-${item.createdAt}`}
+          keyExtractor={(item, index) =>
+            `post-${item.id}-${item.authorId}-${item.createdAt}-${index}`
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -639,30 +660,7 @@ export default function ExploreScreen() {
           onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
-          ListHeaderComponent={
-            useGitHubFallback ? (
-              <View
-                style={[
-                  styles.fallbackHeader,
-                  { backgroundColor: colors.status.warning.light },
-                ]}
-              >
-                <Ionicons
-                  name="warning-outline"
-                  size={20}
-                  color={colors.status.warning.main}
-                />
-                <Text
-                  style={[
-                    styles.fallbackText,
-                    { color: colors.status.warning.main },
-                  ]}
-                >
-                  Showing GitHub repositories (backend unavailable)
-                </Text>
-              </View>
-            ) : null
-          }
+          ListHeaderComponent={null}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons

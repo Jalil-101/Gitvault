@@ -1,4 +1,4 @@
-// components/AddTodoModal.tsx
+// components/todo/AddTodoModal.tsx
 import { useModernTheme } from "@/context/ThemeContext";
 import { Todo } from "@/types/todo";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -44,7 +45,8 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date());
+  const [tempDateTime, setTempDateTime] = useState(new Date());
+  const [pickerMode, setPickerMode] = useState<"date" | "time">("date");
 
   const handleAddTodo = () => {
     if (!newTodo.title.trim()) {
@@ -58,17 +60,15 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
     }
 
     onAddTodo(newTodo);
-    setNewTodo({
-      title: "",
-      description: "",
-      priority: "medium",
-      deadline: undefined,
-      completed: false,
-    });
-    onClose();
+    resetForm();
   };
 
   const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const resetForm = () => {
     setNewTodo({
       title: "",
       description: "",
@@ -78,25 +78,100 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
     });
     setShowDatePicker(false);
     setShowTimePicker(false);
-    onClose();
+    setTempDateTime(new Date());
+    setPickerMode("date");
   };
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+
+    if (date) {
+      // Create a new date with the selected date and set a default time (9:00 AM)
+      const newDateTime = new Date(date);
+      newDateTime.setHours(9); // Default to 9:00 AM
+      newDateTime.setMinutes(0);
+      newDateTime.setSeconds(0);
+      newDateTime.setMilliseconds(0);
+
+      setTempDateTime(newDateTime);
+    }
+  };
+
+  const handleTimeChange = (event: any, time?: Date) => {
+    if (Platform.OS === "android") {
+      setShowTimePicker(false);
+    }
+
+    if (time) {
+      // Combine the temp date with the selected time
+      const finalDateTime = new Date(tempDateTime);
+      finalDateTime.setHours(time.getHours());
+      finalDateTime.setMinutes(time.getMinutes());
+      finalDateTime.setSeconds(0);
+      finalDateTime.setMilliseconds(0);
+
+      setTempDateTime(finalDateTime);
+    }
+  };
+
+  const handleDateTimePickerChange = (event: any, selectedValue?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+      setShowTimePicker(false);
+    }
+
+    if (selectedValue) {
+      if (pickerMode === "date") {
+        // Handle date selection - set default time to 9:00 AM
+        const newDateTime = new Date(selectedValue);
+        newDateTime.setHours(9); // Default to 9:00 AM
+        newDateTime.setMinutes(0);
+        newDateTime.setSeconds(0);
+        newDateTime.setMilliseconds(0);
+
+        setTempDateTime(newDateTime);
+      } else {
+        // Handle time selection
+        const finalDateTime = new Date(tempDateTime);
+        finalDateTime.setHours(selectedValue.getHours());
+        finalDateTime.setMinutes(selectedValue.getMinutes());
+        finalDateTime.setSeconds(0);
+        finalDateTime.setMilliseconds(0);
+
+        setTempDateTime(finalDateTime);
+      }
+    }
+  };
+
+  const handleDatePickerDismiss = () => {
     setShowDatePicker(false);
-    if (selectedDate) {
-      setTempDate(selectedDate);
+    if (Platform.OS === "ios") {
+      // On iOS, show time picker after date is confirmed
+      setPickerMode("time");
       setShowTimePicker(true);
+    } else {
+      // On Android, set the deadline immediately
+      setNewTodo({ ...newTodo, deadline: tempDateTime });
     }
   };
 
-  const handleTimeChange = (event: any, selectedTime?: Date) => {
+  const handleTimePickerDismiss = () => {
     setShowTimePicker(false);
-    if (selectedTime) {
-      const finalDateTime = new Date(tempDate);
-      finalDateTime.setHours(selectedTime.getHours());
-      finalDateTime.setMinutes(selectedTime.getMinutes());
-      setNewTodo({ ...newTodo, deadline: finalDateTime });
-    }
+    setPickerMode("date");
+    // Set the final deadline
+    setNewTodo({ ...newTodo, deadline: tempDateTime });
+  };
+
+  const handleDatePickerCancel = () => {
+    setShowDatePicker(false);
+    setPickerMode("date");
+  };
+
+  const handleTimePickerCancel = () => {
+    setShowTimePicker(false);
+    setPickerMode("date");
   };
 
   const formatDeadline = (date: Date) => {
@@ -124,6 +199,12 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
       default:
         return colors.text.tertiary;
     }
+  };
+
+  const openDateTimePicker = () => {
+    setPickerMode("date");
+    setShowDatePicker(true);
+    setShowTimePicker(false);
   };
 
   return (
@@ -314,7 +395,7 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
                 padding: 16,
                 marginBottom: 20,
               }}
-              onPress={() => setShowDatePicker(true)}
+              onPress={openDateTimePicker}
             >
               <Ionicons
                 name="calendar-outline"
@@ -373,8 +454,8 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
                   lineHeight: 20,
                 }}
               >
-                You'll receive reminders every 48 hours until the deadline, plus
-                a final reminder on the due date.
+                You'll receive reminders 24 hours before the deadline and on the
+                due date.
               </Text>
             </View>
           )}
@@ -403,25 +484,125 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Date Picker */}
+        {/* Date Picker with Dismiss Buttons */}
         {showDatePicker && (
-          <DateTimePicker
-            value={tempDate}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            minimumDate={new Date()}
-          />
+          <View
+            style={{
+              backgroundColor: colors.surface.primary,
+              borderTopWidth: 1,
+              borderTopColor: colors.border.primary,
+              padding: 16,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: colors.text.primary,
+                }}
+              >
+                Select Date
+              </Text>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <TouchableOpacity onPress={handleDatePickerCancel}>
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 16,
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDatePickerDismiss}>
+                  <Text
+                    style={{
+                      color: colors.interactive.primary,
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Next
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <DateTimePicker
+              value={tempDateTime}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateTimePickerChange}
+              minimumDate={new Date()}
+            />
+          </View>
         )}
 
-        {/* Time Picker */}
+        {/* Time Picker with Dismiss Buttons */}
         {showTimePicker && (
-          <DateTimePicker
-            value={tempDate}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-          />
+          <View
+            style={{
+              backgroundColor: colors.surface.primary,
+              borderTopWidth: 1,
+              borderTopColor: colors.border.primary,
+              padding: 16,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: colors.text.primary,
+                }}
+              >
+                Select Time
+              </Text>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <TouchableOpacity onPress={handleTimePickerCancel}>
+                  <Text
+                    style={{
+                      color: colors.text.secondary,
+                      fontSize: 16,
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleTimePickerDismiss}>
+                  <Text
+                    style={{
+                      color: colors.interactive.primary,
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <DateTimePicker
+              value={tempDateTime}
+              mode="time"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateTimePickerChange}
+            />
+          </View>
         )}
       </View>
     </Modal>

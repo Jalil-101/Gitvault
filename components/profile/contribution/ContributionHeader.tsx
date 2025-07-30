@@ -1,19 +1,21 @@
 // components/profile/contribution/ContributionHeader.tsx
-import React from "react";
-import { View, Text } from "react-native";
-import { Calendar } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { Calendar, RefreshCw } from "lucide-react-native";
+import React from "react";
+import { ActivityIndicator, Text, View } from "react-native";
 
 interface ContributionHeaderProps {
   totalContributions: number;
   colors: any;
   shadows: any;
+  refreshing?: boolean;
 }
 
 export const ContributionHeader: React.FC<ContributionHeaderProps> = ({
   totalContributions,
   colors,
   shadows,
+  refreshing = false,
 }) => {
   return (
     <View
@@ -45,7 +47,11 @@ export const ContributionHeader: React.FC<ContributionHeaderProps> = ({
             className="w-8 h-8 rounded-xl items-center justify-center"
             style={{ backgroundColor: "#22C55E20" }}
           >
-            <Calendar size={18} color="#16A34A" />
+            {refreshing ? (
+              <ActivityIndicator size={16} color="#16A34A" />
+            ) : (
+              <Calendar size={18} color="#16A34A" />
+            )}
           </View>
         </View>
         <View className="flex-1">
@@ -59,9 +65,16 @@ export const ContributionHeader: React.FC<ContributionHeaderProps> = ({
             className="text-sm font-medium mt-0.5"
             style={{ color: colors.text.secondary }}
           >
-            {totalContributions.toLocaleString()} this year
+            {refreshing
+              ? "Updating..."
+              : `${totalContributions.toLocaleString()} this year`}
           </Text>
         </View>
+        {refreshing && (
+          <View className="ml-2">
+            <RefreshCw size={16} color="#16A34A" />
+          </View>
+        )}
       </View>
     </View>
   );

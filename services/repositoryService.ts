@@ -99,6 +99,15 @@ class RepositoryService {
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Silently handle 403 errors (user not authenticated) - this is expected
+      if (response.status === 403) {
+        console.log(
+          "RepositoryService - User not authenticated, returning empty user repositories"
+        );
+        return [];
+      }
+
       console.error(
         `RepositoryService - Get user repos failed: ${response.status} - ${errorText}`
       );
@@ -136,6 +145,15 @@ class RepositoryService {
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Silently handle 403 errors (user not authenticated) - this is expected
+      if (response.status === 403) {
+        console.log(
+          "RepositoryService - User not authenticated, returning empty public repositories"
+        );
+        return [];
+      }
+
       console.error(
         `RepositoryService - Get public repos failed: ${response.status} - ${errorText}`
       );
@@ -170,6 +188,15 @@ class RepositoryService {
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Silently handle 403 errors (user not authenticated) - this is expected
+      if (response.status === 403) {
+        console.log(
+          "RepositoryService - User not authenticated, cannot fetch repository details"
+        );
+        throw new Error("Authentication required to view repository details");
+      }
+
       console.error(
         `RepositoryService - Repository details error: ${response.status} - ${errorText}`
       );

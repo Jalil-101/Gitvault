@@ -1,22 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { View, Text } from "react-native";
+import { ContributionCalendar } from "@/components/profile/contribution/ContributionCalendar";
+import { ContributionHeader } from "@/components/profile/contribution/ContributionHeader";
+import { ContributionStats } from "@/components/profile/contribution/ContributionStats";
+import { MonthNavigation } from "@/components/profile/contribution/MonthNavigation";
+import { SelectedDayInfo } from "@/components/profile/contribution/SelectedDayInfo";
 import { useModernTheme } from "@/context/ThemeContext";
-import {
-  ContributionGraphProps,
-  ContributionDay,
-} from "../../types/contribution";
 import {
   generateContributionData,
   getContributionStats,
   groupContributionsByMonth,
 } from "@/utils/contributions/contributionData";
-import { ContributionHeader } from "@/components/profile/contribution/ContributionHeader";
-import { ContributionStats } from "@/components/profile/contribution/ContributionStats";
-import { MonthNavigation } from "@/components/profile/contribution/MonthNavigation";
-import { ContributionCalendar } from "@/components/profile/contribution/ContributionCalendar";
-import { SelectedDayInfo } from "@/components/profile/contribution/SelectedDayInfo";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { Text, View } from "react-native";
+import {
+  ContributionDay,
+  ContributionGraphProps,
+} from "../../types/contribution";
 
-export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
+export interface ContributionGraphRef {
+  refresh: () => Promise<void>;
+}
+
+export const ContributionGraph = forwardRef<
+  ContributionGraphRef,
+  ContributionGraphProps
+>((props, ref) => {
   const { colors, shadows } = useModernTheme();
   const [selectedDay, setSelectedDay] = useState<ContributionDay | null>(null);
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0); // Start with current month
@@ -27,19 +34,28 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
     longestStreak: 0,
   });
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadContributionData();
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadContributionData = async () => {
     try {
       setLoading(true);
-      
+      console.log("🔄 Refreshing contribution data...");
+
       // Load contribution data
       const contributionData = await generateContributionData();
       setContributions(contributionData);
-      
+
+      // If no contribution data, set empty stats for new users
+      if (contributionData.length === 0) {
+        setStats({
+          totalContributions: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+        });
+        setLoading(false);
+        return;
+      }
+
       // Load stats
       const contributionStats = await getContributionStats();
       setStats({
@@ -47,12 +63,28 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
         currentStreak: contributionStats.currentStreak,
         longestStreak: contributionStats.longestStreak,
       });
+
+      console.log("✅ Contribution data refreshed successfully");
     } catch (error) {
-      console.error("Error loading contribution data:", error);
+      console.log("Could not load contribution data");
     } finally {
       setLoading(false);
     }
   };
+
+  // Expose refresh method to parent component
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      setRefreshing(true);
+      console.log("🔄 Manual refresh triggered...");
+      await loadContributionData();
+      setRefreshing(false);
+    },
+  }));
+
+  useEffect(() => {
+    loadContributionData();
+  }, []);
 
   const monthlyContributions = groupContributionsByMonth(contributions);
   const monthNames = [
@@ -77,10 +109,18 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
   const year = currentDate.getFullYear();
 
   const handlePreviousMonth = () => {
-    // Disabled - no going to previous months
+    console.log("📅 Previous month pressed, current index:", currentMonthIndex);
+    // Allow navigation to previous months
+    setCurrentMonthIndex(Math.max(0, currentMonthIndex - 1));
   };
 
   const handleNextMonth = () => {
+    console.log(
+      "📅 Next month pressed, current index:",
+      currentMonthIndex,
+      "total months:",
+      monthlyContributions.length
+    );
     setCurrentMonthIndex(
       Math.min(monthlyContributions.length - 1, currentMonthIndex + 1)
     );
@@ -89,7 +129,8 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
   if (loading) {
     return (
       <View className="mb-6">
-        <View className="mx-5 p-5 rounded-2xl items-center justify-center"
+        <View
+          className="mx-5 p-5 rounded-2xl items-center justify-center"
           style={{
             backgroundColor: colors.surface.secondary,
             borderWidth: 1,
@@ -106,12 +147,39 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
     );
   }
 
+  // Show message for new users with no contribution data
+  if (contributions.length === 0) {
+    return (
+      <View className="mb-6">
+        <View
+          className="mx-5 p-5 rounded-2xl items-center justify-center"
+          style={{
+            backgroundColor: colors.surface.secondary,
+            borderWidth: 1,
+            borderColor: "#22C55E20",
+            ...shadows.sm,
+            height: 200,
+          }}
+        >
+          <Text style={{ color: colors.text.secondary, textAlign: "center" }}>
+            No contribution data yet{"\n"}
+            <Text style={{ color: colors.text.tertiary, fontSize: 14 }}>
+              Create your first repository to start building your contribution
+              graph
+            </Text>
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="mb-6">
       <ContributionHeader
         totalContributions={stats.totalContributions}
         colors={colors}
         shadows={shadows}
+        refreshing={refreshing}
       />
 
       <ContributionStats
@@ -148,4 +216,4 @@ export const ContributionGraph: React.FC<ContributionGraphProps> = () => {
       )}
     </View>
   );
-};
+});

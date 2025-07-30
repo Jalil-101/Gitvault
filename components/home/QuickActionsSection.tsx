@@ -1,13 +1,7 @@
 import { useModernTheme } from "@/context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import {
-  ClipboardCheck,
-  GitPullRequest,
-  Plus,
-  Search,
-} from "lucide-react-native";
-import React from "react";
+import { Bot, ClipboardCheck, Plus, Search } from "lucide-react-native";
 import {
   ColorValue,
   Platform,
@@ -25,10 +19,10 @@ const quickActions = [
     onPress: () => router.push("/screens/SearchScreen"),
   },
   {
-    id: "prs",
-    icon: GitPullRequest,
+    id: "vault-ai",
+    icon: Bot,
     label: "Vault AI",
-    colorKey: "error" as const,
+    colorKey: "info" as const,
     onPress: () => router.push("/screens/VaultAIChatScreen"),
   },
   {
@@ -115,24 +109,75 @@ export default function QuickActionsSection() {
               key={action.id}
               onPress={action.onPress}
               activeOpacity={0.7}
-              className="flex-1 items-center p-4 rounded-2xl mx-1.5"
+              className={`flex-1 items-center p-4 rounded-2xl mx-1.5 ${
+                action.id === "vault-ai" ? "border-2" : ""
+              }`}
               style={{
-                backgroundColor: colors.surface.glass,
-                borderWidth: 1,
-                borderColor: colors.border.glass,
+                backgroundColor:
+                  action.id === "vault-ai"
+                    ? colors.accents.purple.light
+                    : colors.surface.glass,
+                borderWidth: action.id === "vault-ai" ? 2 : 1,
+                borderColor:
+                  action.id === "vault-ai"
+                    ? colors.accents.purple.main
+                    : colors.border.glass,
+                ...Platform.select({
+                  ios: {
+                    ...shadows.md,
+                    shadowRadius: action.id === "vault-ai" ? 12 : 8,
+                    shadowColor:
+                      action.id === "vault-ai"
+                        ? colors.accents.purple.main
+                        : "#000",
+                    shadowOpacity: action.id === "vault-ai" ? 0.3 : 0.1,
+                  },
+                  android: {
+                    elevation: action.id === "vault-ai" ? 8 : 4,
+                  },
+                }),
               }}
             >
               <View
-                className="w-10 h-10 rounded-full items-center justify-center mb-2"
+                className={`w-10 h-10 rounded-full items-center justify-center mb-2 ${
+                  action.id === "vault-ai" ? "scale-110" : ""
+                }`}
                 style={{
-                  backgroundColor: colors.status[action.colorKey].main,
+                  backgroundColor:
+                    action.id === "vault-ai"
+                      ? colors.accents.purple.main
+                      : colors.status[action.colorKey].main,
+                  ...Platform.select({
+                    ios: {
+                      ...shadows.sm,
+                      shadowRadius: action.id === "vault-ai" ? 8 : 4,
+                      shadowColor:
+                        action.id === "vault-ai"
+                          ? colors.accents.purple.main
+                          : "#000",
+                      shadowOpacity: action.id === "vault-ai" ? 0.4 : 0.1,
+                    },
+                    android: {
+                      elevation: action.id === "vault-ai" ? 4 : 2,
+                    },
+                  }),
                 }}
               >
-                <action.icon size={20} color={colors.text.inverse} />
+                <action.icon
+                  size={action.id === "vault-ai" ? 22 : 20}
+                  color={colors.text.inverse}
+                />
               </View>
               <Text
-                className="text-xs font-semibold"
-                style={{ color: colors.text.secondary }}
+                className={`text-xs font-semibold ${
+                  action.id === "vault-ai" ? "font-bold" : ""
+                }`}
+                style={{
+                  color:
+                    action.id === "vault-ai"
+                      ? colors.accents.purple.main
+                      : colors.text.secondary,
+                }}
               >
                 {action.label}
               </Text>

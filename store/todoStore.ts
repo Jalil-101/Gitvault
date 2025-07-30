@@ -1,8 +1,13 @@
 // store/todoStore.ts
-import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { Todo } from "../types/todo";
+import {
+  cancelNotification,
+  requestNotificationPermissions,
+  scheduleTodoNotification,
+} from "../utils/appnotifications";
+import { useNotificationStore } from "./notificationStore";
 
 interface TodoStore {
   todos: Todo[];
@@ -15,12 +20,11 @@ interface TodoStore {
   toggleTodo: (id: string) => Promise<void>;
   loadTodos: () => Promise<void>;
   saveTodos: () => Promise<void>;
-  scheduleNotification: (todo: Todo) => Promise<void>;
+  clearTodos: () => Promise<void>;
+  refreshTodos: () => Promise<void>;
   scheduleDeadlineNotifications: (todo: Todo) => Promise<void>;
-  cancelNotification: (notificationId: string) => Promise<void>;
-  cancelAllNotifications: (notificationIds: string[]) => Promise<void>;
+  cancelTodoNotifications: (todo: Todo) => Promise<void>;
   checkAndScheduleNotifications: () => Promise<void>;
-  clearAllExistingNotifications: () => Promise<void>;
 }
 
 const STORAGE_KEY = "todos";
@@ -30,6 +34,8 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
   isLoading: false,
 
   addTodo: async (todoData) => {
+    console.log("📝 Adding new todo:", todoData);
+
     const newTodo: Todo = {
       ...todoData,
       id: Date.now().toString(),
@@ -38,25 +44,43 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
       notificationIds: [],
     };
 
-    set((state) => ({
-      todos: [...state.todos, newTodo],
-    }));
+    console.log("✅ Created todo object:", newTodo);
+
+    set((state) => {
+      const newState = {
+        todos: [...state.todos, newTodo],
+      };
+      console.log("📊 Updated todos state:", newState.todos.length, "todos");
+      return newState;
+    });
 
     // Schedule notifications if deadline is set
-    if (newTodo.deadline) {
-      await get().scheduleDeadlineNotifications(newTodo);
+    if (newTodo.deadline && !newTodo.completed) {
+      try {
+        await get().scheduleDeadlineNotifications(newTodo);
+      } catch (error) {
+        console.log("Could not schedule notifications for new todo");
+      }
     }
 
     await get().saveTodos();
+    console.log("💾 Todo saved to storage");
   },
 
   updateTodo: async (id, updates) => {
     const currentTodo = get().todos.find((t) => t.id === id);
     if (!currentTodo) return;
 
-    // Cancel existing notifications if deadline is being updated
-    if (updates.deadline && currentTodo.notificationIds) {
-      await get().cancelAllNotifications(currentTodo.notificationIds);
+    // Cancel existing notifications if deadline is being updated or todo is completed
+    if (
+      (updates.deadline || updates.completed) &&
+      currentTodo.notificationIds
+    ) {
+      try {
+        await get().cancelTodoNotifications(currentTodo);
+      } catch (error) {
+        console.log("Could not cancel notifications for todo update");
+      }
     }
 
     set((state) => ({
@@ -73,14 +97,13 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
     }));
 
     // Schedule new notifications if deadline is set and todo is not completed
-    // Only if this is a new deadline or deadline was changed
     const updatedTodo = get().todos.find((t) => t.id === id);
-    if (
-      updatedTodo?.deadline &&
-      !updatedTodo.completed &&
-      updates.deadline // Only schedule if deadline was actually updated
-    ) {
-      await get().scheduleDeadlineNotifications(updatedTodo);
+    if (updatedTodo?.deadline && !updatedTodo.completed && updates.deadline) {
+      try {
+        await get().scheduleDeadlineNotifications(updatedTodo);
+      } catch (error) {
+        console.log("Could not schedule notifications for todo update");
+      }
     }
 
     await get().saveTodos();
@@ -89,7 +112,11 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
   deleteTodo: async (id) => {
     const todo = get().todos.find((t) => t.id === id);
     if (todo?.notificationIds) {
-      await get().cancelAllNotifications(todo.notificationIds);
+      try {
+        await get().cancelTodoNotifications(todo);
+      } catch (error) {
+        console.log("Could not cancel notifications for todo deletion");
+      }
     }
 
     set((state) => ({
@@ -104,7 +131,11 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
     if (todo) {
       // Cancel notifications if todo is completed
       if (!todo.completed && todo.notificationIds) {
-        await get().cancelAllNotifications(todo.notificationIds);
+        try {
+          await get().cancelTodoNotifications(todo);
+        } catch (error) {
+          console.log("Could not cancel notifications for todo toggle");
+        }
       }
 
       await get().updateTodo(id, { completed: !todo.completed });
@@ -114,25 +145,33 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
   loadTodos: async () => {
     set({ isLoading: true });
     try {
+      // Request notification permissions first
+      await requestNotificationPermissions();
+
       const storedTodos = await SecureStore.getItemAsync(STORAGE_KEY);
+      console.log(
+        "📂 Loading todos from storage:",
+        storedTodos ? "found" : "not found"
+      );
+
       if (storedTodos) {
         const parsedTodos = JSON.parse(storedTodos).map((todo: any) => ({
           ...todo,
           createdAt: new Date(todo.createdAt),
           updatedAt: todo.updatedAt ? new Date(todo.updatedAt) : undefined,
-          dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
           deadline: todo.deadline ? new Date(todo.deadline) : undefined,
-          lastNotificationDate: todo.lastNotificationDate
-            ? new Date(todo.lastNotificationDate)
-            : undefined,
         }));
+        console.log("📋 Parsed todos:", parsedTodos.length, "todos");
         set({ todos: parsedTodos });
 
         // Check and schedule notifications for todos with deadlines
         await get().checkAndScheduleNotifications();
+      } else {
+        console.log("📋 No stored todos found, starting with empty list");
+        set({ todos: [] });
       }
     } catch (error) {
-      console.error("Error loading todos:", error);
+      console.error("❌ Error loading todos:", error);
     } finally {
       set({ isLoading: false });
     }
@@ -142,23 +181,18 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
     try {
       await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(get().todos));
     } catch (error) {
-      console.error("Error saving todos:", error);
+      console.error("❌ Error saving todos:", error);
     }
   },
 
-  scheduleNotification: async (todo) => {
-    if (!todo.dueDate) return;
+  clearTodos: async () => {
+    set({ todos: [] });
+    await SecureStore.deleteItemAsync(STORAGE_KEY);
+    console.log("✅ Cleared all todos from storage.");
+  },
 
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Todo Reminder",
-        body: `Don't forget: ${todo.title}`,
-        data: { todoId: todo.id },
-      },
-      trigger: { date: todo.dueDate },
-    });
-
-    await get().updateTodo(todo.id, { notificationId });
+  refreshTodos: async () => {
+    await get().loadTodos();
   },
 
   scheduleDeadlineNotifications: async (todo) => {
@@ -169,139 +203,147 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
     const timeUntilDeadline = deadline.getTime() - now.getTime();
 
     // Don't schedule if deadline has passed
-    if (timeUntilDeadline <= 0) return;
-
-    // Cancel existing notifications first
-    if (todo.notificationIds && todo.notificationIds.length > 0) {
-      await get().cancelAllNotifications(todo.notificationIds);
+    if (timeUntilDeadline <= 0) {
+      console.log(
+        `⏰ Skipping notification for todo "${todo.title}" - deadline has passed`
+      );
+      return;
     }
 
-    const notificationIds: string[] = [];
-    const hours48 = 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+    try {
+      const notificationIds: string[] = [];
 
-    // Calculate notification times: every 48 hours until deadline
-    let currentTime = now.getTime();
-    let notificationCount = 0;
-    const maxNotifications = 5; // Reduced from 10 to prevent spam
+      // Schedule reminder notification 24 hours before deadline
+      const reminderDate = new Date(deadline.getTime() - 24 * 60 * 60 * 1000);
+      if (reminderDate.getTime() > now.getTime()) {
+        const reminderId = await scheduleTodoNotification(
+          todo.id,
+          todo.title,
+          reminderDate,
+          "reminder"
+        );
+        notificationIds.push(reminderId);
+        console.log(
+          `📅 Scheduled reminder for todo "${
+            todo.title
+          }" at ${reminderDate.toISOString()}`
+        );
+      }
 
-    // Only schedule if we have enough time before deadline
-    while (
-      currentTime < deadline.getTime() - hours48 && // Stop 48h before deadline
-      notificationCount < maxNotifications
-    ) {
-      const notificationDate = new Date(currentTime);
-
-      // Schedule notification
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Todo Deadline Reminder",
-          body: `Task due soon: ${todo.title}`,
-          data: {
-            todoId: todo.id,
-            type: "deadline_reminder",
-            notificationCount: notificationCount + 1,
-          },
-        },
-        trigger: { date: notificationDate },
-      });
-
-      notificationIds.push(notificationId);
-      notificationCount++;
-      currentTime += hours48;
-    }
-
-    // Schedule final notification on deadline (only if deadline is in the future)
-    if (deadline.getTime() > now.getTime()) {
-      const finalNotificationId = await Notifications.scheduleNotificationAsync(
-        {
-          content: {
-            title: "Todo Deadline Today!",
-            body: `Your task is due today: ${todo.title}`,
-            data: {
-              todoId: todo.id,
-              type: "deadline_final",
-            },
-          },
-          trigger: { date: deadline },
-        }
+      // Schedule final notification on deadline
+      const finalId = await scheduleTodoNotification(
+        todo.id,
+        todo.title,
+        deadline,
+        "final"
+      );
+      notificationIds.push(finalId);
+      console.log(
+        `📅 Scheduled final notification for todo "${
+          todo.title
+        }" at ${deadline.toISOString()}`
       );
 
-      notificationIds.push(finalNotificationId);
+      // Add notifications to the notification store for the notification tab
+      const { addTodoNotification } = useNotificationStore.getState();
+
+      // Add reminder notification to notification store
+      if (reminderDate.getTime() > now.getTime()) {
+        addTodoNotification(todo.id, todo.title, reminderDate);
+      }
+
+      // Add final notification to notification store
+      addTodoNotification(todo.id, todo.title, deadline);
+
+      // Update todo with notification IDs
+      set((state) => ({
+        todos: state.todos.map((t) =>
+          t.id === todo.id
+            ? {
+                ...t,
+                notificationIds,
+              }
+            : t
+        ),
+      }));
+
+      console.log(
+        `✅ Successfully scheduled ${notificationIds.length} notifications for todo: ${todo.title}`
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error scheduling deadline notifications for todo "${todo.title}":`,
+        error
+      );
+      throw error;
     }
-
-    // Update todo with notification IDs (without triggering updateTodo again)
-    set((state) => ({
-      todos: state.todos.map((t) =>
-        t.id === todo.id
-          ? {
-              ...t,
-              notificationIds,
-              lastNotificationDate: now,
-            }
-          : t
-      ),
-    }));
-
-    console.log(
-      `Scheduled ${notificationIds.length} notifications for todo: ${todo.title}`
-    );
   },
 
-  cancelNotification: async (notificationId) => {
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
-  },
+  cancelTodoNotifications: async (todo) => {
+    if (!todo.notificationIds || todo.notificationIds.length === 0) return;
 
-  cancelAllNotifications: async (notificationIds) => {
-    for (const notificationId of notificationIds) {
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
+    try {
+      for (const notificationId of todo.notificationIds) {
+        await cancelNotification(notificationId);
+      }
+
+      // Clear notification IDs from todo
+      set((state) => ({
+        todos: state.todos.map((t) =>
+          t.id === todo.id
+            ? {
+                ...t,
+                notificationIds: [],
+              }
+            : t
+        ),
+      }));
+
+      console.log(
+        `❌ Cancelled ${todo.notificationIds.length} notifications for todo: ${todo.title}`
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error cancelling notifications for todo "${todo.title}":`,
+        error
+      );
+      throw error;
     }
   },
 
   checkAndScheduleNotifications: async () => {
     const todos = get().todos;
     const now = new Date();
+    let scheduledCount = 0;
 
     for (const todo of todos) {
       if (todo.deadline && !todo.completed) {
         const deadline = new Date(todo.deadline);
         const timeUntilDeadline = deadline.getTime() - now.getTime();
 
-        // Only schedule if:
-        // 1. Deadline hasn't passed
-        // 2. No notifications are currently scheduled
-        // 3. Deadline is at least 48 hours away (to prevent immediate notifications)
+        // Only schedule if deadline hasn't passed and no notifications are currently scheduled
         if (
-          timeUntilDeadline > 48 * 60 * 60 * 1000 && // At least 48 hours away
-          (!todo.notificationIds || todo.notificationIds.length === 0) &&
-          (!todo.lastNotificationDate ||
-            now.getTime() - new Date(todo.lastNotificationDate).getTime() >
-              24 * 60 * 60 * 1000) // At least 24h since last scheduling
+          timeUntilDeadline > 0 &&
+          (!todo.notificationIds || todo.notificationIds.length === 0)
         ) {
-          console.log(`Rescheduling notifications for todo: ${todo.title}`);
-          await get().scheduleDeadlineNotifications(todo);
+          try {
+            console.log(
+              `📅 Rescheduling notifications for todo: ${todo.title}`
+            );
+            await get().scheduleDeadlineNotifications(todo);
+            scheduledCount++;
+          } catch (error) {
+            console.error(
+              `❌ Error rescheduling notifications for todo "${todo.title}":`,
+              error
+            );
+          }
         }
       }
     }
-  },
 
-  clearAllExistingNotifications: async () => {
-    const todos = get().todos;
-
-    for (const todo of todos) {
-      if (todo.notificationIds && todo.notificationIds.length > 0) {
-        await get().cancelAllNotifications(todo.notificationIds);
-      }
+    if (scheduledCount > 0) {
+      console.log(`✅ Rescheduled notifications for ${scheduledCount} todos`);
     }
-
-    // Clear notification IDs from all todos
-    set((state) => ({
-      todos: state.todos.map((todo) => ({
-        ...todo,
-        notificationIds: [],
-        lastNotificationDate: undefined,
-      })),
-    }));
-
-    console.log("Cleared all existing notifications");
   },
 }));

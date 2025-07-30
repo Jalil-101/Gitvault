@@ -115,6 +115,15 @@ class VaultApiService {
         return null;
       }
     }
+
+    // If still no token, this is normal for unauthenticated requests
+    if (!this.accessToken) {
+      console.log(
+        "VaultApiService - No authentication token available (user not signed in)"
+      );
+      return null;
+    }
+
     return this.accessToken;
   }
 
@@ -139,9 +148,19 @@ class VaultApiService {
       ...options,
     };
 
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout (increased from 8)
+
     try {
       console.log("VaultApiService - Starting request...");
-      const response = await fetch(`${this.baseURL}${endpoint}`, config);
+
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        ...config,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
 
       console.log(`VaultApiService - Response status: ${response.status}`);
       console.log(
@@ -160,6 +179,18 @@ class VaultApiService {
 
       if (!response.ok) {
         const errorText = await response.text();
+
+        // Don't log 403 errors for auth endpoints - this is expected when user is not authenticated
+        if (
+          response.status === 403 &&
+          (endpoint.includes("/api/v1/auth/") ||
+            endpoint.includes("/api/repositories/"))
+        ) {
+          throw new Error(
+            `API request failed: ${response.status} - ${errorText}`
+          );
+        }
+
         console.error(
           `VaultApiService - Request failed: ${response.status} - ${errorText}`
         );
@@ -175,7 +206,28 @@ class VaultApiService {
       );
       return data;
     } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Don't log 403 errors for auth endpoints - this is expected when user is not authenticated
+      if (
+        error instanceof Error &&
+        error.message.includes("403") &&
+        (endpoint.includes("/api/v1/auth/") ||
+          endpoint.includes("/api/repositories/"))
+      ) {
+        throw error; // Re-throw without logging
+      }
+
+      // Don't log AbortError - this is expected when requests are cancelled or timeout
+      if (error instanceof Error && error.name === "AbortError") {
+        // Silent handling - don't log anything for AbortError
+        throw new Error(
+          "Request timed out. Please check your connection and try again."
+        );
+      }
+
       console.error("VaultApiService - API request error:", error);
+
       console.error("VaultApiService - Error details:", {
         message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,

@@ -1,9 +1,11 @@
 import DashboardHeader from "@/components/home/DashboardHeader";
-import OverviewSection from "@/components/home/OverviewSection";
+import OverviewSection, {
+  OverviewSectionRef,
+} from "@/components/home/OverviewSection";
 import QuickActionsSection from "@/components/home/QuickActionsSection";
 import { useModernTheme } from "@/context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ColorValue,
   RefreshControl,
@@ -17,7 +19,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DebugPanel } from "@/components/DebugPanel";
-import NotificationTestButton from "@/components/notifications/NotificationTestButton";
 import { GitHubRepository as Repository } from "@/types/repository";
 
 export default function DashboardScreen() {
@@ -25,9 +26,29 @@ export default function DashboardScreen() {
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const { colors, gradients, isDarkTheme } = useModernTheme();
 
-  const onRefresh = () => {
+  // Ref to access OverviewSection's refresh function
+  const overviewSectionRef = useRef<OverviewSectionRef | null>(null);
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 2000);
+    try {
+      // Refresh dashboard stats
+      if (overviewSectionRef.current) {
+        await overviewSectionRef.current.fetchDashboardStats();
+      }
+
+      // Refresh todos
+      const { useTodoStore } = await import("@/store/todoStore");
+      const todoStore = useTodoStore.getState();
+      await todoStore.refreshTodos();
+
+      // Add a small delay to show the refresh animation
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error("Error refreshing dashboard:", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
   const repositories: Repository[] = [
     {
@@ -94,10 +115,8 @@ export default function DashboardScreen() {
           }
         >
           <DashboardHeader />
-          <OverviewSection />
+          <OverviewSection ref={overviewSectionRef} />
           <QuickActionsSection />
-
-          <NotificationTestButton />
 
           {/* Debug Panel Toggle */}
           <View style={{ padding: 20 }}>
